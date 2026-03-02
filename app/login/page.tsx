@@ -25,6 +25,8 @@ export default function LoginPage() {
         router.push("/student/home");
       } else if (data.role === "tutor") {
         router.push("/tutor/home");
+      } else if (data.role === "admin") {
+        router.push("/admin/home");
       }
       setEmail("");
       setPassword("");

@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { message: "ล็อกอินสำเร็จ ✅" 
+      { message: "ล็อกอินสำเร็จ" 
         , role: user.role },
       { status: 200 }
     );
