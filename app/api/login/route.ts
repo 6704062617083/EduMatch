@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     }
 
     const user = await User.findOne({ email });
+
     if (!user) {
       return NextResponse.json(
         { message: "ไม่พบผู้ใช้นี้" },
@@ -33,11 +34,14 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json(
-      { message: "ล็อกอินสำเร็จ" 
-        , role: user.role },
+    const response = NextResponse.json(
+      { message: "ล็อกอินสำเร็จ", role: user.role },
       { status: 200 }
     );
+
+    response.cookies.set("role", user.role);
+
+    return response;
 
   } catch (error: any) {
     return NextResponse.json(

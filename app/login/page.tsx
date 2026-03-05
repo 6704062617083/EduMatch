@@ -22,11 +22,11 @@ export default function LoginPage() {
 
     if (res.ok) {
       if (data.role === "student") {
-        router.push("/student/home");
+        router.push("/home/student");
       } else if (data.role === "tutor") {
-        router.push("/tutor/home");
+        router.push("/home/tutor");
       } else if (data.role === "admin") {
-        router.push("/admin/home");
+        router.push("/home/admin");
       }
       setEmail("");
       setPassword("");

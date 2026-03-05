@@ -9,6 +9,12 @@ const CourseSchema = new mongoose.Schema(
     description: String,
     startTime: Date,
     endTime: Date,
+    classLink: String,
+    tags: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: true }
 );

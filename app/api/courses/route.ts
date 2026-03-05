@@ -17,6 +17,8 @@ export async function POST(req: NextRequest) {
     description: body.description,
     startTime: body.startTime,
     endTime: body.endTime,
+    classLink: body.classLink,
+    tags: body.tags
   });
 
   return NextResponse.json(newCourse, { status: 201 });
