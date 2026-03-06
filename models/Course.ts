@@ -10,6 +10,11 @@ const CourseSchema = new mongoose.Schema(
     startTime: Date,
     endTime: Date,
     classLink: String,
+    tutorId: {
+      type: String,
+      required: true,
+    },
+
     tags: [
       {
         type: String,

@@ -38,6 +38,17 @@ export async function PUT(
 
   const body = await req.json();
 
+  // ป้องกันแก้คอร์สของ tutor คนอื่น
+  const course = await Course.findById(id);
+
+  if (!course) {
+    return NextResponse.json({ message: "Course not found" }, { status: 404 });
+  }
+
+  if (course.tutorId.toString() !== body.tutorId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+  }
+
   const updated = await Course.findByIdAndUpdate(
     id,
     {
@@ -46,14 +57,10 @@ export async function PUT(
       startTime: body.startTime,
       endTime: body.endTime,
       classLink: body.classLink,
-      tags: body.tags
+      tags: body.tags,
     },
     { new: true }
   );
-
-  if (!updated) {
-    return NextResponse.json({ message: "Course not found" }, { status: 404 });
-  }
 
   return NextResponse.json(updated);
 }
@@ -66,15 +73,20 @@ export async function DELETE(
 
   const { id } = await context.params;
 
-  try {
-    const deleted = await Course.findByIdAndDelete(id);
+  const tutorId = req.nextUrl.searchParams.get("tutorId");
 
-    if (!deleted) {
-      return NextResponse.json({ message: "Course not found" }, { status: 404 });
-    }
+  const course = await Course.findById(id);
 
-    return NextResponse.json({ message: "Deleted successfully" });
-  } catch (error) {
-    return NextResponse.json({ message: "Delete failed" }, { status: 500 });
+  if (!course) {
+    return NextResponse.json({ message: "Course not found" }, { status: 404 });
   }
+
+  // ป้องกันลบคอร์สของ tutor คนอื่น
+  if (course.tutorId.toString() !== tutorId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+  }
+
+  await Course.findByIdAndDelete(id);
+
+  return NextResponse.json({ message: "Deleted successfully" });
 }

@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-/* หน้า Tutor สำหรับสร้าง แก้ไข ลบ และแสดงคอร์ส */
 export default function TutorHome() {
   const [showModal, setShowModal] = useState(false);
   const [courseName, setCourseName] = useState("");
@@ -17,6 +16,8 @@ export default function TutorHome() {
   const [showTagList, setShowTagList] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
 
+  const [user, setUser] = useState<any>(null);
+
   const subjectTags = [
     "คณิตศาสตร์",
     "ฟิสิกส์",
@@ -28,22 +29,26 @@ export default function TutorHome() {
     "โปรแกรมมิ่ง",
   ];
 
-  /* โหลดคอร์สจาก backend */
   useEffect(() => {
-    fetchCourses();
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      fetchCourses(parsedUser._id);
+    }
   }, []);
 
-  async function fetchCourses() {
+  async function fetchCourses(tutorId: string) {
     try {
-      const res = await fetch("/api/courses");
+      const res = await fetch(`/api/courses?tutorId=${tutorId}`);
       const data = await res.json();
       setCourses(data);
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error(error);
     }
   }
 
-  /* เลือก tag */
   function toggleTag(tag: string) {
     if (tags.includes(tag)) {
       setTags(tags.filter((t) => t !== tag));
@@ -52,67 +57,60 @@ export default function TutorHome() {
     }
   }
 
-  /* สร้างหรือแก้ไขคอร์ส */
   async function handleCreate() {
-    try {
-      const method = editingId ? "PUT" : "POST";
-      const url = editingId ? `/api/courses/${editingId}` : "/api/courses";
+    if (!user) return;
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: courseName,
-          description,
-          startTime,
-          endTime,
-          classLink : link,
-          tags,
-        }),
-      });
+    const method = editingId ? "PUT" : "POST";
+    const url = editingId ? `/api/courses/${editingId}` : "/api/courses";
 
-      if (!res.ok) {
-        alert("Something went wrong");
-        return;
-      }
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: courseName,
+        description,
+        startTime,
+        endTime,
+        classLink: link,
+        tags,
+        tutorId: user._id,
+      }),
+    });
 
-      setShowModal(false);
-      setCourseName("");
-      setDescription("");
-      setStartTime("");
-      setEndTime("");
-      setLink("");
-      setTags([]);
-      setEditingId(null);
-
-      fetchCourses();
-    } catch (error) {
-      console.error("Create/Update error:", error);
+    if (!res.ok) {
+      alert("Something went wrong");
+      return;
     }
+
+    setShowModal(false);
+    setCourseName("");
+    setDescription("");
+    setStartTime("");
+    setEndTime("");
+    setLink("");
+    setTags([]);
+    setEditingId(null);
+
+    fetchCourses(user._id);
   }
 
-  /* ลบคอร์ส */
   async function handleDelete(id: string) {
-    try {
-      const res = await fetch(`/api/courses/${id}`, {
-        method: "DELETE",
-      });
+    if (!user) return;
 
-      if (!res.ok) {
-        alert("Delete failed");
-        return;
-      }
+    const res = await fetch(`/api/courses/${id}?tutorId=${user._id}`, {
+      method: "DELETE",
+    });
 
-      setCourses((prev) => prev.filter((c) => c._id !== id));
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("Something went wrong");
+    if (!res.ok) {
+      alert("Delete failed");
+      return;
     }
+
+    setCourses((prev) => prev.filter((c) => c._id !== id));
   }
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* header */}
       <div
         style={{
           padding: "20px 40px",
@@ -126,13 +124,23 @@ export default function TutorHome() {
       >
         <span>ติวเตอร์</span>
 
-        <Link href="/home/tutor/verify">
-          <button style={createBtn}>Verify</button>
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "16px", fontWeight: "normal" }}>
+            {user?.username} {user?.surname}
+          </span>
+
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              border: "2px solid black",
+            }}
+          ></div>
+        </div>
       </div>
 
       <div style={{ display: "flex", flex: 1 }}>
-        {/* รายการคอร์ส */}
         <div style={{ flex: 1, padding: "40px" }}>
           <h2>All Courses</h2>
 
@@ -149,8 +157,6 @@ export default function TutorHome() {
               }}
             >
               <h3>{course.title}</h3>
-
-              <p>ID: {course._id}</p>
 
               {course.description && <p>{course.description}</p>}
 
@@ -201,8 +207,8 @@ export default function TutorHome() {
                     setEditingId(course._id);
                     setCourseName(course.title);
                     setDescription(course.description || "");
-                    setStartTime(course.startTime?.slice(0, 16));
-                    setEndTime(course.endTime?.slice(0, 16));
+                    setStartTime(course.startTime?.slice(0, 16) || "");
+                    setEndTime(course.endTime?.slice(0, 16) || "");
                     setLink(course.classLink || "");
                     setTags(course.tags || []);
                     setShowModal(true);
@@ -222,14 +228,13 @@ export default function TutorHome() {
           ))}
         </div>
 
-        {/* ปุ่มสร้างคอร์ส */}
         <div
           style={{
             width: "250px",
             padding: "40px 60px 40px 0",
             display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "flex-start",
+            flexDirection: "column",
+            alignItems: "flex-end",
           }}
         >
           <button
@@ -237,14 +242,28 @@ export default function TutorHome() {
               setEditingId(null);
               setShowModal(true);
             }}
-            style={createBtn}
+            style={{
+              ...createBtn,
+              marginTop: "30px",
+            }}
           >
-            + Create
+            + Create course
           </button>
+
+          <Link href="/home/tutor/verify">
+            <button
+              style={{
+                ...createBtn,
+                marginTop: "10px",
+                background: "#555",
+              }}
+            >
+              Verify account
+            </button>
+          </Link>
         </div>
       </div>
 
-      {/* popup สร้างหรือแก้ไขคอร์ส */}
       {showModal && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
@@ -267,7 +286,6 @@ export default function TutorHome() {
               style={{ ...inputStyle, height: "80px" }}
             />
 
-            {/* เลือก tag */}
             <label>รายวิชา</label>
 
             <div style={{ position: "relative", marginBottom: "15px" }}>
@@ -371,7 +389,6 @@ export default function TutorHome() {
   );
 }
 
-/* style ต่าง ๆ */
 const overlayStyle = {
   position: "fixed" as const,
   top: 0,

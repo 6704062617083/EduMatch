@@ -19,8 +19,19 @@ export default function LoginPage() {
     });
 
     const data = await res.json();
+    console.log("LOGIN DATA:", data);
 
     if (res.ok) {
+      localStorage.setItem("tutorId", data.userId);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          username: data.name,
+          surname: data.surname,
+          _id: data.userId,
+        })
+      );
+
       if (data.role === "student") {
         router.push("/home/student");
       } else if (data.role === "tutor") {
@@ -28,6 +39,7 @@ export default function LoginPage() {
       } else if (data.role === "admin") {
         router.push("/home/admin");
       }
+
       setEmail("");
       setPassword("");
     } else {
@@ -63,6 +75,7 @@ export default function LoginPage() {
           ล็อกอิน
         </button>
       </form>
+
       {showPopup && (
         <div
           style={{
@@ -88,9 +101,7 @@ export default function LoginPage() {
           >
             <h2>{popupMessage}</h2>
             <button
-              onClick={() => {
-                setShowPopup(false);
-              }}
+              onClick={() => setShowPopup(false)}
               style={{
                 marginTop: "15px",
                 padding: "8px 20px",

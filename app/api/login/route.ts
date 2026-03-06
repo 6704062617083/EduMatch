@@ -35,11 +35,20 @@ export async function POST(req: Request) {
     }
 
     const response = NextResponse.json(
-      { message: "ล็อกอินสำเร็จ", role: user.role },
+      {
+        message: "ล็อกอินสำเร็จ",
+        role: user.role,
+        userId: user._id,
+        name: user.name,
+        surname: user.surname,
+      },
       { status: 200 }
     );
 
     response.cookies.set("role", user.role);
+    response.cookies.set("userId", user._id.toString());
+    response.cookies.set("name", user.name);
+    response.cookies.set("surname", user.surname);
 
     return response;
 
