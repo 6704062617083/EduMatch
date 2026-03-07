@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function TutorVerify() {
 
@@ -8,6 +9,7 @@ export default function TutorVerify() {
   const [certificate, setCertificate] = useState<File | null>(null);
   const [transcript, setTranscript] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
@@ -15,6 +17,15 @@ export default function TutorVerify() {
       <h1 className="text-2xl font-bold mb-6">ติวเตอร์</h1>
 
       <div className="bg-white p-8 rounded-xl shadow-md">
+
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => router.back()}
+            className="text-blue-500 hover:underline mr-4"
+          >
+            ← ย้อนกลับ
+          </button>
+        </div>
 
 {/* ข้อมูลส่วนบุคคล */}
         <h2 className="text-xl font-semibold mb-4">ข้อมูลส่วนบุคคล</h2>

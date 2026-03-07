@@ -18,6 +18,8 @@ export default function TutorHome() {
 
   const [user, setUser] = useState<any>(null);
 
+  const [showMenu, setShowMenu] = useState(false);
+
   const subjectTags = [
     "คณิตศาสตร์",
     "ฟิสิกส์",
@@ -109,6 +111,16 @@ export default function TutorHome() {
     setCourses((prev) => prev.filter((c) => c._id !== id));
   }
 
+  async function handleLogout() {
+    await fetch("/api/logout", {
+      method: "POST",
+    });
+
+    localStorage.removeItem("user");
+
+    window.location.href = "/";
+  }
+
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <div
@@ -129,14 +141,48 @@ export default function TutorHome() {
             {user?.username} {user?.surname}
           </span>
 
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              border: "2px solid black",
-            }}
-          ></div>
+          <div style={{ position: "relative" }}>
+            <div
+              onClick={() => setShowMenu(!showMenu)}
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                border: "2px solid black",
+                cursor: "pointer",
+              }}
+            ></div>
+
+            {showMenu && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50px",
+                  right: "0",
+                  background: "white",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                }}
+              >
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    background: "#ff4d4f",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 10px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -259,6 +305,18 @@ export default function TutorHome() {
               }}
             >
               Verify account
+            </button>
+          </Link>
+
+          <Link href="/home/tutor/request">
+            <button
+              style={{
+                ...createBtn,
+                marginTop: "10px",
+                background: "#2a0edd",
+              }}
+            >
+              Booking request
             </button>
           </Link>
         </div>
