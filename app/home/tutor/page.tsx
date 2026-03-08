@@ -141,7 +141,14 @@ export default function TutorHome() {
             {user?.username} {user?.surname}
           </span>
 
-          <div style={{ position: "relative" }}>
+          <div
+            style={{
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <div
               onClick={() => setShowMenu(!showMenu)}
               style={{
@@ -153,11 +160,15 @@ export default function TutorHome() {
               }}
             ></div>
 
+            <div style={{ fontSize: "12px", marginTop: "4px" }}>
+              {user?.role}
+            </div>
+
             {showMenu && (
               <div
                 style={{
                   position: "absolute",
-                  top: "50px",
+                  top: "60px",
                   right: "0",
                   background: "white",
                   border: "1px solid #ccc",
@@ -188,7 +199,7 @@ export default function TutorHome() {
 
       <div style={{ display: "flex", flex: 1 }}>
         <div style={{ flex: 1, padding: "40px" }}>
-          <h2>All Courses</h2>
+          <h2>My Courses</h2>
 
           {courses.length === 0 && <p>No courses yet</p>}
 

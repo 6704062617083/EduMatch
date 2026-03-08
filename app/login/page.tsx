@@ -29,6 +29,7 @@ export default function LoginPage() {
           username: data.name,
           surname: data.surname,
           _id: data.userId,
+          role: data.role,
         })
       );
 
