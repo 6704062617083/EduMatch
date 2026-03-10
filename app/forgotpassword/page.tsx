@@ -2,58 +2,63 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [popupMessage, setPopupMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleReset(e: React.FormEvent) {
     e.preventDefault();
 
-    const res = await fetch("/api/login", {
+    if (newPassword !== confirmPassword) {
+      setPopupMessage("รหัสผ่านไม่ตรงกัน");
+      setIsSuccess(false);
+      setShowPopup(true);
+      return;
+    }
+
+    const res = await fetch("/api/forgotpass", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, newPassword }),
     });
 
     const data = await res.json();
-    console.log("LOGIN DATA:", data);
 
     if (res.ok) {
-      localStorage.setItem("tutorId", data.userId);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          username: data.name,
-          surname: data.surname,
-          _id: data.userId,
-          role: data.role,
-        })
-      );
-
-      if (data.role === "student") {
-        router.push("/home/student");
-      } else if (data.role === "tutor") {
-        router.push("/home/tutor");
-      } else if (data.role === "admin") {
-        router.push("/home/admin");
-      }
+      setPopupMessage("เปลี่ยนรหัสผ่านสำเร็จ");
+      setIsSuccess(true);
 
       setEmail("");
-      setPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     } else {
-      setPopupMessage("ล็อกอินไม่สำเร็จ");
-      setShowPopup(true);
+      setPopupMessage(data.message || "เกิดข้อผิดพลาด");
+      setIsSuccess(false);
+    }
+
+    setShowPopup(true);
+  }
+
+  function handleClosePopup() {
+    setShowPopup(false);
+
+    if (isSuccess) {
+      router.push("/login");
     }
   }
 
   return (
     <div style={{ padding: "100px", textAlign: "center" }}>
-      <h1>Login</h1>
+      <h1>ลืมรหัสผ่าน</h1>
 
-      <form onSubmit={handleLogin} style={{ maxWidth: "300px", margin: "0 auto" }}>
+      <form onSubmit={handleReset} style={{ maxWidth: "300px", margin: "0 auto" }}>
         <input
           type="email"
           placeholder="อีเมล"
@@ -65,25 +70,25 @@ export default function LoginPage() {
 
         <input
           type="password"
-          placeholder="รหัสผ่าน"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          placeholder="รหัสผ่านใหม่"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          style={inputStyle}
+        />
+
+        <input
+          type="password"
+          placeholder="ยืนยันรหัสผ่าน"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
           required
           style={inputStyle}
         />
 
         <button type="submit" style={buttonStyle}>
-          ล็อกอิน
+          รีเซ็ตรหัสผ่าน
         </button>
-
-        <p style={{ marginTop: "10px" }}>
-          <a
-            href="/forgotpassword"
-            style={{ color: "#0070f3", textDecoration: "none" }}
-          >
-            ลืมรหัสผ่าน?
-          </a>
-        </p>
       </form>
 
       {showPopup && (
@@ -110,8 +115,9 @@ export default function LoginPage() {
             }}
           >
             <h2>{popupMessage}</h2>
+
             <button
-              onClick={() => setShowPopup(false)}
+              onClick={handleClosePopup}
               style={{
                 marginTop: "15px",
                 padding: "8px 20px",

@@ -37,9 +37,10 @@ export async function POST(req: NextRequest) {
     const newCourse = await Course.create({
       title: body.title,
       description: body.description || "",
-      startTime: body.startTime || null,
-      endTime: body.endTime || null,
+      startTime: body.startTime ? new Date(body.startTime) : null,
+      endTime: body.endTime ? new Date(body.endTime) : null,
       classLink: body.classLink || "",
+      price: body.price || 0,
       tags: Array.isArray(body.tags) ? body.tags : [],
       tutorId: body.tutorId,
     });

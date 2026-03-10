@@ -9,6 +9,7 @@ export default function TutorHome() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [link, setLink] = useState("");
+  const [price, setPrice] = useState("");
 
   const [courses, setCourses] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -25,10 +26,22 @@ export default function TutorHome() {
     "ฟิสิกส์",
     "เคมี",
     "ชีววิทยา",
+    "วิทยาศาสตร์ทั่วไป",
     "ภาษาอังกฤษ",
     "ภาษาไทย",
+    "ภาษาจีน",
+    "ภาษาญี่ปุ่น",
+    "ภาษาเกาหลี",
     "สังคมศึกษา",
+    "ประวัติศาสตร์",
+    "ภูมิศาสตร์",
+    "เศรษฐศาสตร์",
     "โปรแกรมมิ่ง",
+    "วิทยาการคอมพิวเตอร์",
+    "AI",
+    "TGAT1",
+    "TGAT2",
+    "TGAT3"
   ];
 
   useEffect(() => {
@@ -74,6 +87,7 @@ export default function TutorHome() {
         startTime,
         endTime,
         classLink: link,
+        price: Number(price),
         tags,
         tutorId: user._id,
       }),
@@ -90,6 +104,7 @@ export default function TutorHome() {
     setStartTime("");
     setEndTime("");
     setLink("");
+    setPrice("");
     setTags([]);
     setEditingId(null);
 
@@ -213,7 +228,16 @@ export default function TutorHome() {
                 marginBottom: "15px",
               }}
             >
-              <h3>{course.title}</h3>
+              <h3
+                style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  marginBottom: "6px",
+                  color: "#111",
+                }}
+              >
+                {course.title}
+              </h3>
 
               {course.description && <p>{course.description}</p>}
 
@@ -229,6 +253,10 @@ export default function TutorHome() {
                 {course.endTime
                   ? new Date(course.endTime).toLocaleString()
                   : "-"}
+              </p>
+
+              <p style={{ fontWeight: "bold" }}>
+                ราคา: {course.price?.toLocaleString()} บาท
               </p>
 
               <div style={{ marginBottom: "10px" }}>
@@ -251,7 +279,7 @@ export default function TutorHome() {
               {course.classLink && (
                 <p>
                   Class Link:{" "}
-                  <a href={course.classLink} target="_blank">
+                  <a href={course.classLink} target="_blank" rel="noopener noreferrer">
                     {course.classLink}
                   </a>
                 </p>
@@ -267,6 +295,7 @@ export default function TutorHome() {
                     setStartTime(course.startTime?.slice(0, 16) || "");
                     setEndTime(course.endTime?.slice(0, 16) || "");
                     setLink(course.classLink || "");
+                    setPrice(course.price?.toString() || "");
                     setTags(course.tags || []);
                     setShowModal(true);
                   }}
@@ -340,107 +369,119 @@ export default function TutorHome() {
               {editingId ? "Edit Course" : "Create Course"}
             </h2>
 
-            <input
-              type="text"
-              placeholder="Course Name"
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
-              style={inputStyle}
-            />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "15px",
+              }}
+            >
+              <input
+                type="text"
+                placeholder="Course Name"
+                value={courseName}
+                onChange={(e) => setCourseName(e.target.value)}
+                style={inputStyle}
+              />
 
-            <textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              style={{ ...inputStyle, height: "80px" }}
-            />
+              <input
+                type="number"
+                placeholder="ราคา"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                style={inputStyle}
+                required
+              />
 
-            <label>รายวิชา</label>
+              <textarea
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                style={{ ...inputStyle, gridColumn: "span 2", height: "80px" }}
+              />
 
-            <div style={{ position: "relative", marginBottom: "15px" }}>
-              <div
-                onClick={() => setShowTagList(!showTagList)}
-                style={{
-                  ...inputStyle,
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span>{tags.length > 0 ? tags.join(", ") : "เลือกวิชา"}</span>
-                <span>▼</span>
-              </div>
-
-              {showTagList && (
+              <div style={{ position: "relative" }}>
                 <div
+                  onClick={() => setShowTagList(!showTagList)}
                   style={{
-                    position: "absolute",
-                    top: "45px",
-                    left: 0,
-                    width: "100%",
-                    border: "1px solid #ccc",
-                    borderRadius: "6px",
-                    background: "white",
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                    zIndex: 10,
+                    ...inputStyle,
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  {subjectTags.map((tag) => {
-                    const selected = tags.includes(tag);
-
-                    return (
-                      <div
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
-                        style={{
-                          padding: "10px",
-                          cursor: "pointer",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          background: selected ? "#e6f0ff" : "white",
-                        }}
-                      >
-                        <span>{tag}</span>
-                        {selected && <span>✓</span>}
-                      </div>
-                    );
-                  })}
+                  <span>{tags.length > 0 ? tags.join(", ") : "เลือกวิชา"}</span>
+                  <span>▼</span>
                 </div>
-              )}
+
+                {showTagList && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "45px",
+                      left: 0,
+                      width: "100%",
+                      border: "1px solid #ccc",
+                      borderRadius: "6px",
+                      background: "white",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 10,
+                    }}
+                  >
+                    {subjectTags.map((tag) => {
+                      const selected = tags.includes(tag);
+
+                      return (
+                        <div
+                          key={tag}
+                          onClick={() => toggleTag(tag)}
+                          style={{
+                            padding: "10px",
+                            cursor: "pointer",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            background: selected ? "#e6f0ff" : "white",
+                          }}
+                        >
+                          <span>{tag}</span>
+                          {selected && <span>✓</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <input
+                type="text"
+                placeholder="Google Meet / Zoom"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                style={inputStyle}
+              />
+
+              <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                style={inputStyle}
+              />
+
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                style={inputStyle}
+              />
             </div>
-
-            <label>Online Class Link</label>
-            <input
-              type="text"
-              placeholder="Google Meet / Zoom"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              style={inputStyle}
-            />
-
-            <label>Start Time</label>
-            <input
-              type="datetime-local"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              style={inputStyle}
-            />
-
-            <label>End Time</label>
-            <input
-              type="datetime-local"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              style={inputStyle}
-            />
 
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                marginTop: "20px",
+                marginTop: "25px",
               }}
             >
               <button onClick={() => setShowModal(false)} style={cancelBtn}>
@@ -474,13 +515,12 @@ const modalStyle = {
   background: "white",
   padding: "40px",
   borderRadius: "12px",
-  width: "500px",
+  width: "700px",
 };
 
 const inputStyle = {
   width: "100%",
   padding: "10px",
-  marginBottom: "15px",
   borderRadius: "6px",
   border: "1px solid #ccc",
 };

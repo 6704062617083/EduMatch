@@ -38,7 +38,6 @@ export async function PUT(
 
   const body = await req.json();
 
-  // ป้องกันแก้คอร์สของ tutor คนอื่น
   const course = await Course.findById(id);
 
   if (!course) {
@@ -54,10 +53,11 @@ export async function PUT(
     {
       title: body.title,
       description: body.description,
-      startTime: body.startTime,
-      endTime: body.endTime,
+      startTime: body.startTime ? new Date(body.startTime) : null,
+      endTime: body.endTime ? new Date(body.endTime) : null,
       classLink: body.classLink,
-      tags: body.tags,
+      price: body.price || 0,
+      tags: Array.isArray(body.tags) ? body.tags : [],
     },
     { new: true }
   );
@@ -81,7 +81,6 @@ export async function DELETE(
     return NextResponse.json({ message: "Course not found" }, { status: 404 });
   }
 
-  // ป้องกันลบคอร์สของ tutor คนอื่น
   if (course.tutorId.toString() !== tutorId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
   }

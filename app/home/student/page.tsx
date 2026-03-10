@@ -1,10 +1,42 @@
 "use client";
 import { useState, useEffect } from "react";
 
+const SUBJECT_TAGS = [
+  "คณิตศาสตร์",
+  "ฟิสิกส์",
+  "เคมี",
+  "ชีววิทยา",
+  "วิทยาศาสตร์ทั่วไป",
+  "ภาษาอังกฤษ",
+  "ภาษาไทย",
+  "ภาษาจีน",
+  "ภาษาญี่ปุ่น",
+  "ภาษาเกาหลี",
+  "สังคมศึกษา",
+  "ประวัติศาสตร์",
+  "ภูมิศาสตร์",
+  "เศรษฐศาสตร์",
+  "โปรแกรมมิ่ง",
+  "วิทยาการคอมพิวเตอร์",
+  "AI",
+  "TGAT1",
+  "TGAT2",
+  "TGAT3",
+];
+
 export default function StudentHome() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
   const [user, setUser] = useState<any>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [tagFilter, setTagFilter] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  const [showDetail, setShowDetail] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -17,39 +49,54 @@ export default function StudentHome() {
     fetchCourses();
   }, []);
 
+  useEffect(() => {
+    handleSearch(search);
+  }, [search, courses, tagFilter, minPrice, maxPrice]);
+
   async function fetchCourses() {
     try {
-      const res = await fetch("/api/courses");
+      const res = await fetch("/api/student-courses");
       const data = await res.json();
       setCourses(data);
+      setFilteredCourses(data);
     } catch (error) {
       console.error(error);
     }
   }
 
-  async function handleBooking(courseId: string) {
-    if (!user) {
-      alert("Please login first");
-      return;
-    }
+  function handleSearch(keyword: string) {
+    const lower = keyword.toLowerCase();
 
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        courseId,
-        studentId: user._id,
-      }),
+    const filtered = courses.filter((course: any) => {
+      const title = course.title?.toLowerCase() || "";
+      const tutor =
+        (course.tutor?.name + " " + course.tutor?.surname)?.toLowerCase() || "";
+      const tags = course.tags?.join(" ").toLowerCase() || "";
+
+      const matchSearch =
+        title.includes(lower) ||
+        tutor.includes(lower) ||
+        tags.includes(lower);
+
+      const matchTag = tagFilter ? course.tags?.includes(tagFilter) : true;
+
+      const matchMinPrice = minPrice
+        ? course.price >= Number(minPrice)
+        : true;
+
+      const matchMaxPrice = maxPrice
+        ? course.price <= Number(maxPrice)
+        : true;
+
+      return matchSearch && matchTag && matchMinPrice && matchMaxPrice;
     });
 
-    if (!res.ok) {
-      alert("Booking failed");
-      return;
-    }
+    setFilteredCourses(filtered);
+  }
 
-    alert("Booking request sent");
+  function openDetail(course: any) {
+    setSelectedCourse(course);
+    setShowDetail(true);
   }
 
   async function handleLogout() {
@@ -58,7 +105,6 @@ export default function StudentHome() {
     });
 
     localStorage.removeItem("user");
-
     window.location.href = "/";
   }
 
@@ -82,7 +128,14 @@ export default function StudentHome() {
             {user?.username} {user?.surname}
           </span>
 
-          <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div
+            style={{
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <div
               onClick={() => setShowMenu(!showMenu)}
               style={{
@@ -132,11 +185,39 @@ export default function StudentHome() {
       </div>
 
       <div style={{ padding: "40px" }}>
-        <h2>Available Courses</h2>
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <input
+            type="text"
+            placeholder="ค้นหาคอร์ส / ชื่อติวเตอร์ / วิชา"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              flex: 1,
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+            }}
+          />
 
-        {courses.length === 0 && <p>No courses available</p>}
+          <button
+            onClick={() => setShowFilter(true)}
+            style={{
+              padding: "10px 16px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              cursor: "pointer",
+              background: "white",
+            }}
+          >
+            Filter
+          </button>
+        </div>
 
-        {courses.map((course) => (
+        <h2 style={{ marginBottom: "20px" }}>Available Courses</h2>
+
+        {filteredCourses.length === 0 && <p>No courses available</p>}
+
+        {filteredCourses.map((course: any) => (
           <div
             key={course._id}
             style={{
@@ -146,26 +227,22 @@ export default function StudentHome() {
               marginBottom: "15px",
             }}
           >
-            <h3>{course.title}</h3>
+            <h3
+              style={{
+                fontSize: "22px",
+                fontWeight: "bold",
+                marginBottom: "8px",
+              }}
+            >
+              {course.title}
+            </h3>
 
             <p>
-              Tutor: {course.tutor?.username} {course.tutor?.surname}
+              Tutor: {course.tutor?.name} {course.tutor?.surname}
             </p>
 
-            {course.description && <p>{course.description}</p>}
-
-            <p>
-              Start:{" "}
-              {course.startTime
-                ? new Date(course.startTime).toLocaleString()
-                : "-"}
-            </p>
-
-            <p>
-              End:{" "}
-              {course.endTime
-                ? new Date(course.endTime).toLocaleString()
-                : "-"}
+            <p style={{ fontWeight: "bold" }}>
+              ราคา: {course.price?.toLocaleString()} บาท
             </p>
 
             <div style={{ marginBottom: "10px" }}>
@@ -185,21 +262,180 @@ export default function StudentHome() {
               ))}
             </div>
 
-            {course.classLink && (
-              <p>
-                Class Link:{" "}
-                <a href={course.classLink} target="_blank">
-                  {course.classLink}
-                </a>
-              </p>
-            )}
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button style={detailBtn} onClick={() => openDetail(course)}>
+                รายละเอียด
+              </button>
 
-            <button style={bookBtn} onClick={() => handleBooking(course._id)}>
-              จองเรียน
-            </button>
+              <button style={profileBtn}>ติวเตอร์โปรไฟล์</button>
+
+              <button style={bookBtn}>
+                จองเรียน
+              </button>
+            </div>
           </div>
         ))}
       </div>
+
+      {showDetail && selectedCourse && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "25px",
+              borderRadius: "12px",
+              width: "500px",
+              maxWidth: "90%",
+            }}
+          >
+            <p style={{ fontWeight: "bold" }}>ชื่อคอร์ส</p>
+            <p>{selectedCourse.title}</p>
+
+            <p style={{ fontWeight: "bold", marginTop: "10px" }}>ติวเตอร์</p>
+            <p>
+              {selectedCourse.tutor?.name} {selectedCourse.tutor?.surname}
+            </p>
+
+            <p style={{ fontWeight: "bold", marginTop: "10px" }}>ราคา</p>
+            <p>{selectedCourse.price?.toLocaleString()} บาท</p>
+
+            <p style={{ fontWeight: "bold", marginTop: "10px" }}>เวลาเรียน</p>
+            <p>
+              {new Date(selectedCourse.startTime).toLocaleString()} -{" "}
+              {new Date(selectedCourse.endTime).toLocaleString()}
+            </p>
+
+            <p style={{ fontWeight: "bold", marginTop: "10px" }}>
+              รายละเอียดคอร์ส
+            </p>
+            <p style={{ lineHeight: "1.5" }}>
+              {selectedCourse.description}
+            </p>
+
+            <button
+              onClick={() => setShowDetail(false)}
+              style={{
+                marginTop: "20px",
+                padding: "8px 16px",
+                background: "#ff6a00",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+              }}
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showFilter && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "25px",
+              borderRadius: "12px",
+              width: "500px",
+              maxWidth: "90%",
+            }}
+          >
+            <h3 style={{ marginBottom: "15px" }}>Filter</h3>
+
+            <select
+              value={tagFilter}
+              onChange={(e) => setTagFilter(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                marginBottom: "15px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+              }}
+            >
+              <option value="">ทุกวิชา</option>
+              {SUBJECT_TAGS.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+              <input
+                type="number"
+                placeholder="Min price"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                }}
+              />
+
+              <input
+                type="number"
+                placeholder="Max price"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button
+                onClick={() => setShowFilter(false)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  background: "white",
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => setShowFilter(false)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "none",
+                  background: "#ff6a00",
+                  color: "white",
+                }}
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -207,6 +443,24 @@ export default function StudentHome() {
 const bookBtn = {
   padding: "8px 20px",
   background: "#2a0edd",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+};
+
+const detailBtn = {
+  padding: "8px 16px",
+  background: "#555",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+};
+
+const profileBtn = {
+  padding: "8px 16px",
+  background: "#00a86b",
   color: "white",
   border: "none",
   borderRadius: "6px",
