@@ -50,41 +50,76 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ padding: "100px", textAlign: "center" }}>
-      <h1>Login</h1>
+    <div
+      style={{
+        padding: "100px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "#f4f6f9",
+        minHeight: "100vh",
+      }}
+    >
+      <div
+        style={{
+          width: "420px",
+          background: "white",
+          padding: "40px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <h1>Login</h1>
 
-      <form onSubmit={handleLogin} style={{ maxWidth: "300px", margin: "0 auto" }}>
-        <input
-          type="email"
-          placeholder="อีเมล"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="รหัสผ่าน"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={inputStyle}
-        />
-
-        <button type="submit" style={buttonStyle}>
-          ล็อกอิน
-        </button>
-
-        <p style={{ marginTop: "10px" }}>
-          <a
-            href="/forgotpassword"
-            style={{ color: "#0070f3", textDecoration: "none" }}
+        <div style={{ textAlign: "left", marginBottom: "20px" }}>
+          <button
+            onClick={() => router.push("/")}
+            className="text-blue-500 hover:underline"
+            style={{
+              position: "absolute",
+              top: "20px",
+              left: "20px",
+            }}
           >
-            ลืมรหัสผ่าน?
-          </a>
-        </p>
-      </form>
+            ← ย้อนกลับ
+          </button>
+        </div>
+
+        <form onSubmit={handleLogin} style={{ maxWidth: "300px", margin: "0 auto" }}>
+          <input
+            type="email"
+            placeholder="อีเมล"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={inputStyle}
+          />
+
+          <input
+            type="password"
+            placeholder="รหัสผ่าน"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={inputStyle}
+          />
+
+          <button type="submit" style={buttonStyle}>
+            ล็อกอิน
+          </button>
+
+          <p style={{ marginTop: "10px" }}>
+            <a
+              href="/forgotpassword"
+              style={{ color: "#0070f3", textDecoration: "none" }}
+            >
+              ลืมรหัสผ่าน?
+            </a>
+          </p>
+        </form>
+      </div>
 
       {showPopup && (
         <div
