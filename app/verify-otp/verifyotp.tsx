@@ -9,6 +9,7 @@ export default function VerifyOTP() {
 
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
+  const type = searchParams.get("type"); 
 
   const [popupMessage, setPopupMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
@@ -35,7 +36,7 @@ export default function VerifyOTP() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, otp }),
+      body: JSON.stringify({ email, otp, type }), 
     });
 
     const data = await res.json();
@@ -57,14 +58,14 @@ export default function VerifyOTP() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, type }), 
     });
 
     const data = await res.json();
 
     if (res.ok) {
       alert("ส่ง OTP ใหม่ไปที่อีเมลคุณแล้ว");
-      setTimer(60); 
+      setTimer(60);
     } else {
       alert(data.message);
     }
@@ -90,8 +91,23 @@ export default function VerifyOTP() {
             borderRadius: "15px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
             textAlign: "center",
+            position: "relative",
           }}
         >
+          <div style={{ textAlign: "left", marginBottom: "20px" }}>
+            <button
+              onClick={() => router.back()}
+              className="text-blue-500 hover:underline"
+              style={{
+                position: "absolute",
+                top: "20px",
+                left: "20px",
+              }}
+            >
+              ← ย้อนกลับ
+            </button>
+          </div>
+
           <h1 style={{ marginBottom: "10px" }}>
             EduMatch Verify OTP
           </h1>
@@ -189,7 +205,7 @@ export default function VerifyOTP() {
             <button
               onClick={() => {
                 setShowPopup(false);
-                if(isSuccess) {
+                if (isSuccess) {
                   router.push("/login");
                 }
               }}

@@ -2,51 +2,96 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 
-// ต้อง import otpStore จาก register
-import { otpStore } from "../register/route";
+import { registerOtpStore, forgotOtpStore } from "@/lib/otpStore";
 
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const { email, otp } = await req.json();
+    const { email, otp, type } = await req.json();
 
-    const record = otpStore[email];
+    if (type === "register") {
 
-    //CHECK OTP EXIST
-    if (!record) {
+      const record = registerOtpStore[email];
+
+      //CHECK OTP EXIST
+      if (!record) {
+        return NextResponse.json(
+          { message: "ไม่พบ OTP" },
+          { status: 400 }
+        );
+      }
+
+      //CHECK OTP EXPIRE
+      if (Date.now() > record.expiresAt) {
+        delete registerOtpStore[email];
+        return NextResponse.json(
+          { message: "OTP หมดอายุ" },
+          { status: 400 }
+        );
+      }
+
+      //CHECK OTP MATCH
+      if (record.otp !== otp) {
+        return NextResponse.json(
+          { message: "OTP ไม่ถูกต้อง" },
+          { status: 400 }
+        );
+      }
+
+      //CREATE USER
+      await User.create(record.data);
+
+      //ลบ OTP หลังใช้
+      delete registerOtpStore[email];
+
       return NextResponse.json(
-        { message: "ไม่พบ OTP" },
-        { status: 400 }
+        { message: "สมัครสมาชิกสำเร็จ" },
+        { status: 201 }
       );
     }
 
-    //CHECK OTP EXPIRE
-    if (Date.now() > record.expiresAt) {
-      delete otpStore[email];
+    if (type === "forgot") {
+
+      const record = forgotOtpStore[email];
+
+      //CHECK OTP EXIST
+      if (!record) {
+        return NextResponse.json(
+          { message: "ไม่พบ OTP" },
+          { status: 400 }
+        );
+      }
+
+      //CHECK OTP EXPIRE
+      if (Date.now() > record.expiresAt) {
+        delete forgotOtpStore[email];
+        return NextResponse.json(
+          { message: "OTP หมดอายุ" },
+          { status: 400 }
+        );
+      }
+
+      //CHECK OTP MATCH
+      if (record.otp !== otp) {
+        return NextResponse.json(
+          { message: "OTP ไม่ถูกต้อง" },
+          { status: 400 }
+        );
+      }
+
+      //ลบ OTP หลังใช้
+      delete forgotOtpStore[email];
+
       return NextResponse.json(
-        { message: "OTP หมดอายุ" },
-        { status: 400 }
+        { message: "OTP ถูกต้อง" },
+        { status: 200 }
       );
     }
-
-    //CHECK OTP MATCH 
-    if (record.otp !== otp) {
-      return NextResponse.json(
-        { message: "OTP ไม่ถูกต้อง" },
-        { status: 400 }
-      );
-    }
-
-    //CREATE USER 
-    await User.create(record.data);
-
-    //ลบ OTP หลังใช้
-    delete otpStore[email];
 
     return NextResponse.json(
-      { message: "สมัครสมาชิกสำเร็จ" },
-      { status: 201 }
+      { message: "ประเภท OTP ไม่ถูกต้อง" },
+      { status: 400 }
     );
 
   } catch (error: any) {

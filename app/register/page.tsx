@@ -41,7 +41,7 @@ export default function RegisterPage() {
 
     if (res.ok) {
       // สมัครสำเร็จ → ไปหน้า verify otp
-      router.push(`/verify-otp?email=${email}`);
+      router.push(`/verify-otp?email=${email}&type=register`);
     } else {
       setPopupMessage("เกิดข้อผิดพลาด: " + data.message);
       setShowPopup(true);

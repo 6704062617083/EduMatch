@@ -1,34 +1,34 @@
 import { NextResponse } from "next/server";
 import { sendOTP } from "@/lib/mailer";
-import { otpStore } from "../register/route";
+import { registerOtpStore, forgotOtpStore } from "@/lib/otpStore";
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const { email, type } = await req.json();
 
-    const record = otpStore[email];
+    //เลือก store
+    const store = type === "register"
+      ? registerOtpStore
+      : forgotOtpStore;
 
-    //CHECK EMAIL EXIST 
-    if (!record) {
-      return NextResponse.json(
-        { message: "ไม่พบข้อมูลการสมัคร" },
-        { status: 400 }
-      );
-    }
-
-    //GENERATE NEW OTP 
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    record.otp = newOtp;
-    record.expiresAt = Date.now() + 5 * 60 * 1000;
+    //ถ้าไม่มี → สร้าง
+    if (!store[email]) {
+      store[email] = {
+        otp: newOtp,
+        expiresAt: Date.now() + 5 * 60 * 1000,
+      };
+    } 
+    //ถ้ามี → update OTP
+    else {
+      store[email].otp = newOtp;
+      store[email].expiresAt = Date.now() + 5 * 60 * 1000;
+    }
 
-    //SEND OTP AGAIN 
     await sendOTP(email, newOtp);
 
-    return NextResponse.json(
-      { message: "ส่ง OTP ใหม่แล้ว" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "ส่ง OTP แล้ว" });
 
   } catch (error: any) {
     return NextResponse.json(
