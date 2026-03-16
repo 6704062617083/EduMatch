@@ -16,7 +16,8 @@ const CourseSchema = new mongoose.Schema(
     classLink: String,
 
     tutorId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
 

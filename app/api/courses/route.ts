@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Course from "@/models/Course";
+import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,7 +13,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([]);
     }
 
-    const courses = await Course.find({ tutorId }).sort({ createdAt: -1 });
+    const courses = await Course.find({ 
+      tutorId:new mongoose.Types.ObjectId(tutorId) 
+    }).sort({ createdAt: -1 });
 
     return NextResponse.json(courses);
   } catch (error) {

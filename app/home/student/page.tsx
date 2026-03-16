@@ -37,6 +37,10 @@ export default function StudentHome() {
 
   const [showDetail, setShowDetail] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [bookingLoading, setBookingLoading] = useState<string | null>(null);
+
+  const [showBookingConfirm, setShowBookingConfirm] = useState(false);
+  const [selectedBookingCourse, setSelectedBookingCourse] = useState<any>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -97,6 +101,49 @@ export default function StudentHome() {
   function openDetail(course: any) {
     setSelectedCourse(course);
     setShowDetail(true);
+  }
+
+  function openBookingConfirm(course: any) {
+    setSelectedBookingCourse(course);
+    setShowBookingConfirm(true);
+  }
+
+  async function handleBooking(courseId: string) {
+    if (!user) {
+      alert("กรุณา login");
+      return;
+    }
+
+    setBookingLoading(courseId);
+
+    try {
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId: user._id,
+          courseId: courseId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "จองไม่สำเร็จ");
+        setBookingLoading(null);
+        return;
+      }
+
+      alert("ส่งคำขอจองไปยังติวเตอร์แล้ว");
+      setShowBookingConfirm(false);
+    } catch (error) {
+      console.error(error);
+      alert("เกิดข้อผิดพลาด");
+    }
+
+    setBookingLoading(null);
   }
 
   async function handleLogout() {
@@ -269,13 +316,95 @@ export default function StudentHome() {
 
               <button style={profileBtn}>ติวเตอร์โปรไฟล์</button>
 
-              <button style={bookBtn}>
+              <button
+                style={bookBtn}
+                onClick={() => openBookingConfirm(course)}
+              >
                 จองเรียน
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {showBookingConfirm && selectedBookingCourse && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "25px",
+              borderRadius: "12px",
+              width: "500px",
+              maxWidth: "90%",
+            }}
+          >
+            <p style={{ fontWeight: "bold" }}>ยืนยันการจอง</p>
+
+            <p style={{ marginTop: "10px" }}>
+              {selectedBookingCourse.title}
+            </p>
+
+            <p>
+              {new Date(
+                selectedBookingCourse.startTime
+              ).toLocaleString()}{" "}
+              -{" "}
+              {new Date(
+                selectedBookingCourse.endTime
+              ).toLocaleString()}
+            </p>
+
+            <p style={{ marginTop: "10px" }}>
+              ราคา {selectedBookingCourse.price?.toLocaleString()} บาท
+            </p>
+
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                onClick={() => setShowBookingConfirm(false)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  background: "white",
+                }}
+              >
+                ยกเลิก
+              </button>
+
+              <button
+                onClick={() =>
+                  handleBooking(selectedBookingCourse._id)
+                }
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "none",
+                  background: "#2a0edd",
+                  color: "white",
+                }}
+              >
+                ยืนยันจอง
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showDetail && selectedCourse && (
         <div
