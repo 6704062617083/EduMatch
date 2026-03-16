@@ -77,7 +77,7 @@ export default function RegisterPage() {
 
         <div style={{ textAlign: "left", marginBottom: "20px" }}>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/login")}
             className="text-blue-500 hover:underline"
             style={{
               position: "absolute",
