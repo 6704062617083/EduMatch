@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const SUBJECT_TAGS = [
   "คณิตศาสตร์",
@@ -41,6 +42,7 @@ export default function StudentHome() {
 
   const [showBookingConfirm, setShowBookingConfirm] = useState(false);
   const [selectedBookingCourse, setSelectedBookingCourse] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -257,6 +259,19 @@ export default function StudentHome() {
             }}
           >
             Filter
+          </button>
+
+          <button
+            onClick={() => router.push("/home/student/mybooking")}
+            style={{
+              padding: "10px 16px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              cursor: "pointer",
+              background: "white",
+            }}
+          >
+            My Booking
           </button>
         </div>
 
