@@ -23,18 +23,6 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (res.ok) {
-      localStorage.setItem("tutorId", data.userId);
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          username: data.name,
-          surname: data.surname,
-          _id: data.userId,
-          role: data.role,
-        })
-      );
-
       if (data.role === "student") router.push("/home/student");
       else if (data.role === "tutor") router.push("/home/tutor");
       else if (data.role === "admin") router.push("/home/admin");

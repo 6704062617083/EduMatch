@@ -11,9 +11,7 @@ export async function GET() {
 
     const coursesWithTutor = await Promise.all(
       courses.map(async (course) => {
-        const tutor = await User.findById(course.tutorId).select(
-          "name surname"
-        );
+        const tutor = await User.findById(course.tutorId).select("name surname");
 
         return {
           _id: course._id,
@@ -24,12 +22,11 @@ export async function GET() {
           price: course.price,
           tags: course.tags,
           classLink: course.classLink,
-          tutor: tutor
-            ? {
-                name: tutor.name,
-                surname: tutor.surname,
-              }
-            : null,
+          tutor: tutor ? {
+            _id: tutor._id,
+            name: tutor.name,
+            surname: tutor.surname,
+          } : null,
         };
       })
     );
