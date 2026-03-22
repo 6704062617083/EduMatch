@@ -44,11 +44,24 @@ export async function POST(req: Request) {
       },
       { status: 200 }
     );
+    
+    response.cookies.set("role", user.role, {
+      httpOnly: true,
+      path: "/",
+    });
 
-    response.cookies.set("role", user.role);
-    response.cookies.set("userId", user._id.toString());
-    response.cookies.set("name", user.name);
-    response.cookies.set("surname", user.surname);
+    response.cookies.set("userId", user._id.toString(), {
+      httpOnly: true,
+      path: "/",
+    });
+
+    response.cookies.set("name", user.name, {
+      path: "/",
+    });
+
+    response.cookies.set("surname", user.surname, {
+      path: "/",
+    });
 
     return response;
 

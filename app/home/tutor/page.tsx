@@ -21,6 +21,8 @@ export default function TutorHome() {
 
   const [showMenu, setShowMenu] = useState(false);
 
+  const [verifyStatus, setVerifyStatus] = useState<string>(""); // ✅
+
   const subjectTags = [
     "คณิตศาสตร์",
     "ฟิสิกส์",
@@ -45,14 +47,25 @@ export default function TutorHome() {
   ];
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+  fetch("/api/me")
+    .then(res => {
+      if (!res.ok) throw new Error("Not logged in");
+      return res.json();
+    })
+    .then(data => {
+      setUser(data);
+      fetchCourses(data._id);
+    })
+    .catch(() => {
+      window.location.href = "/login";
+    });
 
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      fetchCourses(parsedUser._id);
-    }
-  }, []);
+  fetch("/api/tutor/verify/status")
+    .then(res => res.json())
+    .then(doc => {
+      if (doc?.status) setVerifyStatus(doc.status);
+    });
+}, []);
 
   async function fetchCourses(tutorId: string) {
     try {
@@ -153,7 +166,7 @@ export default function TutorHome() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "16px", fontWeight: "normal" }}>
-            {user?.username} {user?.surname}
+            {user?.name} {user?.surname}
           </span>
 
           <div
@@ -323,8 +336,13 @@ export default function TutorHome() {
             alignItems: "flex-end",
           }}
         >
+          {/* ✅ แก้แค่ปุ่มนี้ */}
           <button
             onClick={() => {
+              if (verifyStatus !== "approved") {
+                alert("กรุณายืนยันตัวตนก่อนสร้าง Course");
+                return;
+              }
               setEditingId(null);
               setShowModal(true);
             }}
@@ -357,6 +375,18 @@ export default function TutorHome() {
               }}
             >
               Booking request
+            </button>
+          </Link>
+
+          <Link href="/home/tutor/status">
+            <button
+              style={{
+                ...createBtn,
+                marginTop: "10px",
+                background: "#6e5be7",
+              }}
+            >
+              verify status
             </button>
           </Link>
         </div>

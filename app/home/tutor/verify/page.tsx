@@ -1,158 +1,431 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TutorVerify() {
 
+  const [form, setForm] = useState({
+    email: "",
+    name: "",
+    surname: "",
+    phone: "",
+    idCardNumber: "",
+    firstNameEN: "",
+    lastNameEN: "",
+    province: "",
+    ethnicity: "",
+    nationality: "",
+    religion: "",
+    birthDate: "",
+    height: "",
+    weight: "",
+    bloodType: "",
+    maritalStatus: "",
+    academicStrength: "",
+    educationLevel: "",
+    university: "",
+    faculty: "",
+    major: "",
+    gpa: "",
+    tutorExp: "",
+  });
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [idCard, setIdCard] = useState<File | null>(null);
   const [certificate, setCertificate] = useState<File | null>(null);
   const [transcript, setTranscript] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
+
   const router = useRouter();
+  const MAX_SIZE = 5 * 1024 * 1024;
+  const [verifyStatus, setVerifyStatus] = useState<string>("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (field: string, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  const handleFileChange = (file: File | null, setter: (f: File | null) => void) => {
+    if (!file) return;
+    if (file.size > MAX_SIZE) {
+      alert("ไฟล์ต้องไม่เกิน 5MB");
+      return;
+    }
+    setter(file);
+  };
+
+  useEffect(() => {
+    fetch("/api/me")
+      .then(res => {
+        if (!res.ok) throw new Error("Not logged in");
+        return res.json();
+      })
+      .then(data => {
+        setForm(prev => ({
+          ...prev,
+          email: data.email || "",
+          name: data.name || "",
+          surname: data.surname || "",
+          phone: data.phone || "",
+        }));
+      })
+      .catch(() => router.push("/login"));
+
+    fetch("/api/tutor/verify/status")
+      .then(res => res.json())
+      .then(doc => {
+        if (!doc) return;
+        setIsSubmitted(true);
+        setVerifyStatus(doc.status);
+        setForm(prev => ({
+          ...prev,
+          idCardNumber:     doc.nationalId       || "",
+          firstNameEN:      doc.firstNameEN      || "",
+          lastNameEN:       doc.lastNameEN       || "",
+          province:         doc.province         || "",
+          ethnicity:        doc.ethnicity        || "",
+          nationality:      doc.nationality      || "",
+          religion:         doc.religion         || "",
+          birthDate:        doc.birthDate ? doc.birthDate.split("T")[0] : "",
+          height:           doc.height?.toString()    || "",
+          weight:           doc.weight?.toString()    || "",
+          bloodType:        doc.bloodType        || "",
+          maritalStatus:    doc.maritalStatus    || "",
+          academicStrength: doc.academicStrength || "",
+          educationLevel:   doc.educationLevel   || "",
+          university:       doc.university       || "",
+          faculty:          doc.faculty          || "",
+          major:            doc.major            || "",
+          gpa:              doc.gpa?.toString()       || "",
+          tutorExp:         doc.tutorExp?.toString()  || "",
+        }));
+      });
+  }, []);
+
+  const isValidThaiID = (id: string) => {
+    if (!/^\d{13}$/.test(id)) return false;
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(id[i]) * (13 - i);
+    }
+    const checkDigit = (11 - (sum % 11)) % 10;
+    return checkDigit === parseInt(id[12]);
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    const requiredFields: Record<string, string> = {
+      idCardNumber:     "รหัสบัตรประชาชน",
+      firstNameEN:      "ชื่อ (English)",
+      lastNameEN:       "นามสกุล (English)",
+      province:         "จังหวัดที่อาศัย",
+      ethnicity:        "เชื้อชาติ",
+      nationality:      "สัญชาติ",
+      religion:         "ศาสนา",
+      birthDate:        "วันเกิด",
+      height:           "ส่วนสูง",
+      weight:           "น้ำหนัก",
+      bloodType:        "หมู่โลหิต",
+      maritalStatus:    "สถานภาพสมรส",
+      academicStrength: "ความถนัดทางวิชาการ",
+      educationLevel:   "ระดับการศึกษา",
+      university:       "ชื่อสถาบันการศึกษา",
+      faculty:          "คณะ",
+      major:            "สาขาวิชา",
+      gpa:              "เกรดเฉลี่ย",
+      tutorExp:         "ประสบการณ์สอน",
+    };
+
+    for (const [field] of Object.entries(requiredFields)) {
+      if (!(form as any)[field]) {
+        newErrors[field] = `โปรดกรอกฟิลด์นี้`;
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    if (form.idCardNumber.length !== 13) {
+      alert("กรุณากรอกเลขบัตร 13 หลัก");
+      return;
+    }
+    if (!isValidThaiID(form.idCardNumber)) {
+      alert("เลขบัตรประชาชนไม่ถูกต้อง");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("nationalId",       form.idCardNumber);
+      formData.append("firstNameEN",      form.firstNameEN);
+      formData.append("lastNameEN",       form.lastNameEN);
+      formData.append("province",         form.province);
+      formData.append("ethnicity",        form.ethnicity);
+      formData.append("nationality",      form.nationality);
+      formData.append("religion",         form.religion);
+      formData.append("birthDate",        form.birthDate);
+      formData.append("height",           form.height);
+      formData.append("weight",           form.weight);
+      formData.append("bloodType",        form.bloodType);
+      formData.append("maritalStatus",    form.maritalStatus);
+      formData.append("academicStrength", form.academicStrength);
+      formData.append("educationLevel",   form.educationLevel);
+      formData.append("university",       form.university);
+      formData.append("faculty",          form.faculty);
+      formData.append("major",            form.major);
+      formData.append("gpa",              form.gpa);
+      formData.append("tutorExp",         form.tutorExp);
+
+      if (idCard)      formData.append("idCard",      idCard);
+      if (certificate) formData.append("certificate", certificate);
+      if (transcript)  formData.append("transcript",  transcript);
+      if (resume)      formData.append("resume",       resume);
+
+      const res = await fetch("/api/tutor/verify", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "เกิดข้อผิดพลาด");
+        return;
+      }
+
+      alert("ส่งข้อมูลสำเร็จ รอการยืนยันจากแอดมิน");
+      router.push("/home/tutor/status");
+
+    } catch (err) {
+      console.error(err);
+      alert("เกิดข้อผิดพลาด");
+    }
+  };
+
+  const label = (text: string) => (
+    <label className="text-sm text-gray-600 mb-1">{text}</label>
+  );
+
+  const lockedInput = (labelText: string, field: string) => (
+    <div className="flex flex-col">
+      {label(labelText)}
+      <input
+        placeholder={labelText}
+        className="border p-2 rounded bg-gray-100 cursor-not-allowed"
+        value={(form as any)[field]}
+        readOnly
+      />
+    </div>
+  );
+
+  const freeInput = (labelText: string, field: string, extra?: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <div className="flex flex-col">
+      {label(labelText)}
+      <input
+        placeholder={labelText}
+        className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors[field] ? "border-red-500" : ""}`}
+        value={(form as any)[field]}
+        onChange={e => !isSubmitted && handleChange(field, e.target.value)}
+        readOnly={isSubmitted}
+        {...extra}
+      />
+      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+    </div>
+  );
+
+  const numericInput = (labelText: string, field: string, maxLen: number) => (
+    <div className="flex flex-col">
+      {label(labelText)}
+      <input
+        placeholder={labelText}
+        className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors[field] ? "border-red-500" : ""}`}
+        value={(form as any)[field]}
+        inputMode="decimal"
+        maxLength={maxLen}
+        onChange={e => {
+          if (isSubmitted) return;
+          const val = e.target.value.replace(/[^0-9.]/g, "");
+          handleChange(field, val);
+        }}
+        readOnly={isSubmitted}
+      />
+      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+    </div>
+  );
+
+  const selectInput = (labelText: string, field: string, options: string[]) => (
+    <div className="flex flex-col">
+      {label(labelText)}
+      <select
+        className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors[field] ? "border-red-500" : ""}`}
+        value={(form as any)[field]}
+        onChange={e => !isSubmitted && handleChange(field, e.target.value)}
+        disabled={isSubmitted}
+      >
+        <option value="">เลือก{labelText}</option>
+        {options.map(opt => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+    </div>
+  );
+
+  const fileRow = (labelText: string, file: File | null, setter: (f: File | null) => void) => (
+    <div>
+      <label className="block mb-1 text-sm text-gray-600">{labelText}</label>
+      <div className="flex items-center border rounded p-2">
+        <span className="flex-1 text-sm text-gray-600">
+          {file ? file.name : "ยังไม่ได้เลือกไฟล์"}
+        </span>
+        {!isSubmitted && (
+          <label className="bg-blue-500 text-white px-3 py-1 rounded cursor-pointer text-sm">
+            เลือกไฟล์
+            <input
+              type="file"
+              className="hidden"
+              onChange={e => handleFileChange(e.target.files?.[0] || null, setter)}
+            />
+          </label>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
-
       <h1 className="text-2xl font-bold mb-6">ติวเตอร์</h1>
 
       <div className="bg-white p-8 rounded-xl shadow-md">
 
         <div className="flex items-center mb-4">
-          <button
-            onClick={() => router.back()}
-            className="text-blue-500 hover:underline mr-4"
-          >
+          <button onClick={() => router.back()} className="text-blue-500 hover:underline mr-4">
             ← ย้อนกลับ
           </button>
         </div>
 
-{/* ข้อมูลส่วนบุคคล */}
         <h2 className="text-xl font-semibold mb-4">ข้อมูลส่วนบุคคล</h2>
 
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <input placeholder="รหัสบัตรประชาชน" className="border p-2 rounded"/>
-          <input placeholder="อีเมล" className="border p-2 rounded"/>
+          <div className="flex flex-col">
+            {label("รหัสบัตรประชาชน")}
+            <input
+              placeholder="รหัสบัตรประชาชน"
+              className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors.idCardNumber ? "border-red-500" : ""}`}
+              value={form.idCardNumber}
+              inputMode="numeric"
+              maxLength={13}
+              onChange={e => {
+                if (isSubmitted) return;
+                handleChange("idCardNumber", e.target.value.replace(/\D/g, ""));
+              }}
+              readOnly={isSubmitted}
+            />
+            {errors.idCardNumber && <span className="text-red-500 text-xs mt-1">{errors.idCardNumber}</span>}
+          </div>
 
-          <input placeholder="ชื่อ" className="border p-2 rounded"/>
-          <input placeholder="นามสกุล" className="border p-2 rounded"/>
-
-          <input placeholder="ชื่อ (English)" className="border p-2 rounded"/>
-          <input placeholder="นามสกุล (English)" className="border p-2 rounded"/>
-
-          <input placeholder="เบอร์โทรศัพท์" className="border p-2 rounded"/>
-          <input placeholder="จังหวัดที่อาศัย" className="border p-2 rounded"/>
+          {lockedInput("อีเมล",         "email")}
+          {lockedInput("ชื่อ",           "name")}
+          {lockedInput("นามสกุล",        "surname")}
+          {freeInput("ชื่อ (English)",    "firstNameEN")}
+          {freeInput("นามสกุล (English)", "lastNameEN")}
+          {lockedInput("เบอร์โทรศัพท์",  "phone")}
+          {freeInput("จังหวัดที่อาศัย",  "province")}
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <input placeholder="เชื้อชาติ" className="border p-2 rounded"/>
-          <input placeholder="สัญชาติ" className="border p-2 rounded"/>
-          <input placeholder="ศาสนา" className="border p-2 rounded"/>
+          {freeInput("เชื้อชาติ",   "ethnicity")}
+          {freeInput("สัญชาติ",     "nationality")}
+          {selectInput("ศาสนา", "religion", ["พุทธ", "คริสต์", "อิสลาม", "ฮินดู", "ซิกข์", "ไม่มีศาสนา", "อื่นๆ"])}
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <input type="date" className="border p-2 rounded"/>
-          <input placeholder="ส่วนสูง (cm)" className="border p-2 rounded"/>
-          <input placeholder="น้ำหนัก (kg)" className="border p-2 rounded"/>
+          <div className="flex flex-col">
+            {label("วันเกิด")}
+            <input
+              type="text"
+              placeholder="วันเกิด"
+              className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors.birthDate ? "border-red-500" : ""}`}
+              value={form.birthDate}
+              onChange={e => !isSubmitted && handleChange("birthDate", e.target.value)}
+              onFocus={e => { if (!isSubmitted) e.target.type = "date"; }}
+              onBlur={e => { if (!e.target.value) e.target.type = "text"; }}
+              readOnly={isSubmitted}
+            />
+            {errors.birthDate && <span className="text-red-500 text-xs mt-1">{errors.birthDate}</span>}
+          </div>
+
+          {numericInput("ส่วนสูง (cm)", "height", 3)}
+          {numericInput("น้ำหนัก (kg)", "weight", 3)}
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <input placeholder="หมู่โลหิต" className="border p-2 rounded"/>
-          <input placeholder="สถานภาพสมรส" className="border p-2 rounded"/>
-          <input placeholder="ความถนัดทางวิชาการ" className="border p-2 rounded"/>
+          {selectInput("หมู่โลหิต",     "bloodType",     ["A", "B", "AB", "O"])}
+          {selectInput("สถานภาพสมรส",   "maritalStatus", ["โสด", "สมรส", "หย่าร้าง", "หม้าย"])}
+          {freeInput("ความถนัดทางวิชาการ", "academicStrength")}
         </div>
 
-
-{/* ข้อมูลการศึกษา */}
         <h2 className="text-xl font-semibold mb-4">ข้อมูลการศึกษา</h2>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <input placeholder="ชื่อสถาบันการศึกษา" className="border p-2 rounded"/>
-          <input placeholder="คณะ" className="border p-2 rounded"/>
+          <div className="flex flex-col">
+            {label("ระดับการศึกษา")}
+            <select
+              className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors.educationLevel ? "border-red-500" : ""}`}
+              value={form.educationLevel}
+              onChange={e => !isSubmitted && handleChange("educationLevel", e.target.value)}
+              disabled={isSubmitted}
+            >
+              <option value="">เลือกระดับการศึกษา</option>
+              <option value="ปริญญาตรี">ปริญญาตรี</option>
+              <option value="ปริญญาโท">ปริญญาโท</option>
+              <option value="ปริญญาเอก">ปริญญาเอก</option>
+            </select>
+            {errors.educationLevel && <span className="text-red-500 text-xs mt-1">{errors.educationLevel}</span>}
+          </div>
 
-          <input placeholder="สาขาวิชา" className="border p-2 rounded"/>
-          <input placeholder="เกรดเฉลี่ย (GPA)" className="border p-2 rounded"/>
+          {freeInput("ชื่อสถาบันการศึกษา", "university")}
+          {freeInput("คณะ",                 "faculty")}
+          {freeInput("สาขาวิชา",            "major")}
+          {numericInput("เกรดเฉลี่ย (GPA)",    "gpa",      4)}
+          {numericInput("ประสบการณ์สอน (ปี)",  "tutorExp", 2)}
         </div>
 
-
-{/* แนบไฟล์ */}
         <h2 className="text-xl font-semibold mb-4">แนบเอกสาร</h2>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-
-          <div>
-            <label className="block mb-1">บัตรประชาชน</label>
-            <div className="flex items-center border rounded p-2">
-              <span className="flex-1 text-sm text-gray-600">
-                {idCard ? idCard.name : "ยังไม่ได้เลือกไฟล์"}
-              </span>
-              <label className="bg-blue-500 text-white px-3 py-1 rounded cursor-pointer text-sm">
-                เลือกไฟล์
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => setIdCard(e.target.files?.[0] || null)}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block mb-1">ประกาศนียบัตร/ปริญญาบัตร</label>
-            <div className="flex items-center border rounded p-2">
-              <span className="flex-1 text-sm text-gray-600">
-                {certificate ? certificate.name : "ยังไม่ได้เลือกไฟล์"}
-              </span>
-              <label className="bg-blue-500 text-white px-3 py-1 rounded cursor-pointer text-sm">
-                เลือกไฟล์
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => setCertificate(e.target.files?.[0] || null)}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block mb-1">Transcript</label>
-            <div className="flex items-center border rounded p-2">
-              <span className="flex-1 text-sm text-gray-600">
-                {transcript ? transcript.name : "ยังไม่ได้เลือกไฟล์"}
-              </span>
-              <label className="bg-blue-500 text-white px-3 py-1 rounded cursor-pointer text-sm">
-                เลือกไฟล์
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => setTranscript(e.target.files?.[0] || null)}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block mb-1">Resume</label>
-            <div className="flex items-center border rounded p-2">
-              <span className="flex-1 text-sm text-gray-600">
-                {resume ? resume.name : "ยังไม่ได้เลือกไฟล์"}
-              </span>
-              <label className="bg-blue-500 text-white px-3 py-1 rounded cursor-pointer text-sm">
-                เลือกไฟล์
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => setResume(e.target.files?.[0] || null)}
-                />
-              </label>
-            </div>
-          </div>
-
+          {fileRow("บัตรประชาชน",              idCard,      setIdCard)}
+          {fileRow("ประกาศนียบัตร/ปริญญาบัตร", certificate, setCertificate)}
+          {fileRow("Transcript",                transcript,  setTranscript)}
+          {fileRow("Resume",                    resume,      setResume)}
         </div>
 
-        <button className="bg-blue-500 text-white px-6 py-2 rounded">
-          ส่งข้อมูล
-        </button>
+        {!isSubmitted ? (
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-500 text-white px-6 py-2 rounded"
+          >
+            ส่งข้อมูล
+          </button>
+        ) : (
+          <div className={`text-sm font-medium px-4 py-2 rounded w-fit ${
+            verifyStatus === "approved" ? "bg-green-100 text-green-700" :
+            verifyStatus === "rejected" ? "bg-red-100 text-red-700" :
+            "bg-yellow-100 text-yellow-700"
+          }`}>
+            {verifyStatus === "approved" && "✅ แอดมินอนุมัติแล้ว"}
+            {verifyStatus === "rejected" && "❌ ไม่ผ่านการยืนยัน"}
+            {verifyStatus === "pending"  && "⏳ ส่งข้อมูลแล้ว รอการยืนยันจากแอดมิน"}
+          </div>
+        )}
 
       </div>
     </div>

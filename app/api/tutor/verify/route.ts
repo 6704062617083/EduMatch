@@ -1,27 +1,125 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import VerificationDocument from "@/models/VerificationDocument";
+import cloudinary from "@/lib/cloudinary";
+import { cookies } from "next/headers";
 
-export async function POST(req: NextRequest) {
+async function uploadToCloudinary(file: File) {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  return new Promise<any>((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(
+        {
+          resource_type: "image", // ✅ ทุกไฟล์รวม PDF
+          type: "upload",
+          use_filename: true,
+          unique_filename: true,
+        },
+        (err, result) => {
+          if (err) reject(err);
+          else {
+            console.log("secure_url:", result?.secure_url);
+            resolve(result);
+          }
+        }
+      )
+      .end(buffer);
+  });
+}
+
+export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const body = await req.json();
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("userId")?.value;
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const existing = await VerificationDocument.findOne({ userId });
+    if (existing) {
+      if (existing.status === "rejected") {
+        await VerificationDocument.deleteOne({ userId });
+      } else {
+        return NextResponse.json({ error: "Already submitted" }, { status: 400 });
+      }
+    }
+
+    const formData = await req.formData();
+
+    const nationalId       = formData.get("nationalId")?.toString()       || null;
+    const firstNameEN      = formData.get("firstNameEN")?.toString()      || null;
+    const lastNameEN       = formData.get("lastNameEN")?.toString()       || null;
+    const province         = formData.get("province")?.toString()         || null;
+    const ethnicity        = formData.get("ethnicity")?.toString()        || null;
+    const nationality      = formData.get("nationality")?.toString()      || null;
+    const religion         = formData.get("religion")?.toString()         || null;
+    const birthDateRaw     = formData.get("birthDate")?.toString()        || null;
+    const height           = formData.get("height")?.toString()           || null;
+    const weight           = formData.get("weight")?.toString()           || null;
+    const bloodType        = formData.get("bloodType")?.toString()        || null;
+    const maritalStatus    = formData.get("maritalStatus")?.toString()    || null;
+    const academicStrength = formData.get("academicStrength")?.toString() || null;
+    const educationLevel   = formData.get("educationLevel")?.toString()   || null;
+    const university       = formData.get("university")?.toString()       || null;
+    const faculty          = formData.get("faculty")?.toString()          || null;
+    const major            = formData.get("major")?.toString()            || null;
+    const gpaRaw           = formData.get("gpa")?.toString()              || null;
+    const tutorExpRaw      = formData.get("tutorExp")?.toString()         || null;
+
+    const idCardFile      = formData.get("idCard")      as File | null;
+    const certificateFile = formData.get("certificate") as File | null;
+    const transcriptFile  = formData.get("transcript")  as File | null;
+    const resumeFile      = formData.get("resume")      as File | null;
+
+    const MAX_SIZE = 5 * 1024 * 1024;
+    for (const file of [idCardFile, certificateFile, transcriptFile, resumeFile]) {
+      if (file && file.size > MAX_SIZE) {
+        return NextResponse.json({ error: "ไฟล์ต้องไม่เกิน 5MB" }, { status: 400 });
+      }
+    }
+
+    const idCardUrl      = idCardFile      ? (await uploadToCloudinary(idCardFile)).secure_url      : null;
+    const certificateUrl = certificateFile ? (await uploadToCloudinary(certificateFile)).secure_url : null;
+    const transcriptUrl  = transcriptFile  ? (await uploadToCloudinary(transcriptFile)).secure_url  : null;
+    const resumeUrl      = resumeFile      ? (await uploadToCloudinary(resumeFile)).secure_url      : null;
 
     const doc = await VerificationDocument.create({
-      ...body,
+      userId,
+      nationalId,
+      firstNameEN,
+      lastNameEN,
+      province,
+      ethnicity,
+      nationality,
+      religion,
+      birthDate:        birthDateRaw ? new Date(birthDateRaw) : null,
+      height:           height       ? Number(height)         : null,
+      weight:           weight       ? Number(weight)         : null,
+      bloodType,
+      maritalStatus,
+      academicStrength,
+      educationLevel,
+      university,
+      faculty,
+      major,
+      gpa:      gpaRaw      ? Number(gpaRaw)      : null,
+      tutorExp: tutorExpRaw ? Number(tutorExpRaw) : null,
+      idCardUrl,
+      certificateUrl,
+      transcriptUrl,
+      resumeUrl,
       status: "pending",
     });
 
-    return NextResponse.json(
-      { message: "ส่งเอกสารสำเร็จ", data: doc },
-      { status: 201 }
-    );
+    return NextResponse.json(doc);
 
-  } catch (error: any) {
-    return NextResponse.json(
-      { message: "error: " + error.message },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
