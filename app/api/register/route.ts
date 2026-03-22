@@ -5,8 +5,6 @@ import User from "@/models/User";
 import { sendOTP } from "@/lib/mailer";
 import { registerOtpStore } from "@/lib/otpStore";
 
-export const otpStore: Record<string, { otp: string; data: any; expiresAt: number }> = {};
-
 export async function POST(req: Request) {
   try {
     await connectDB();

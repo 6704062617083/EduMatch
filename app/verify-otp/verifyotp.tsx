@@ -122,10 +122,11 @@ export default function VerifyOTP() {
 
           <input
             type="text"
+            inputMode="numeric"
             maxLength={6}
             placeholder="กรอก OTP"
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
             style={{
               padding: "14px",
               borderRadius: "8px",
