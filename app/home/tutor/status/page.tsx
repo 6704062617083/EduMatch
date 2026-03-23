@@ -28,7 +28,7 @@ export default function TutorStatusPage() {
       </button>
       
       <button
-        onClick={() => router.push("/tutor/verify")}
+        onClick={() => router.push("/home/tutor/verify")}
         className="bg-blue-500 text-white px-5 py-2 rounded"
       >
         ส่งคำขอยืนยัน

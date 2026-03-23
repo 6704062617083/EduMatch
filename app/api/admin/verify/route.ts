@@ -15,7 +15,7 @@ export async function GET() {
     }
 
     const data = await VerificationDocument.find()
-      .populate("userId", "name surname email phone") // ✅ เอาแค่ที่จำเป็น ไม่เอา password
+      .populate("userId", "name surname email phone") 
       .sort({ createdAt: -1 });
 
     return NextResponse.json(data);

@@ -9,7 +9,6 @@ const VerificationDocumentSchema = new mongoose.Schema(
       unique: true,
     },
 
-    // ── ข้อมูลส่วนบุคคล ─────────────────────────────────────────
     nationalId:       String,
     firstNameEN:      String,
     lastNameEN:       String,
@@ -18,13 +17,8 @@ const VerificationDocumentSchema = new mongoose.Schema(
     nationality:      String,
     religion:         String,
     birthDate:        Date,
-    height:           Number,
-    weight:           Number,
-    bloodType:        String,
-    maritalStatus:    String,
     academicStrength: String,
 
-    // ── การศึกษา ─────────────────────────────────────────────────
     educationLevel: {
       type: String,
       enum: ["ปริญญาตรี", "ปริญญาโท", "ปริญญาเอก", ""],
@@ -35,13 +29,11 @@ const VerificationDocumentSchema = new mongoose.Schema(
     gpa:        Number,
     tutorExp:   Number,
 
-    // ── ไฟล์ ─────────────────────────────────────────────────────
     idCardUrl:      String,
     certificateUrl: String,
     transcriptUrl:  String,
     resumeUrl:      String,
 
-    // ── status ───────────────────────────────────────────────────
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],

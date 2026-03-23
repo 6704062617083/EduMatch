@@ -18,10 +18,6 @@ export default function TutorVerify() {
     nationality: "",
     religion: "",
     birthDate: "",
-    height: "",
-    weight: "",
-    bloodType: "",
-    maritalStatus: "",
     academicStrength: "",
     educationLevel: "",
     university: "",
@@ -79,8 +75,10 @@ export default function TutorVerify() {
       .then(res => res.json())
       .then(doc => {
         if (!doc) return;
-        setIsSubmitted(true);
+
         setVerifyStatus(doc.status);
+        setIsSubmitted(doc.status !== "rejected");
+
         setForm(prev => ({
           ...prev,
           idCardNumber:     doc.nationalId       || "",
@@ -91,10 +89,6 @@ export default function TutorVerify() {
           nationality:      doc.nationality      || "",
           religion:         doc.religion         || "",
           birthDate:        doc.birthDate ? doc.birthDate.split("T")[0] : "",
-          height:           doc.height?.toString()    || "",
-          weight:           doc.weight?.toString()    || "",
-          bloodType:        doc.bloodType        || "",
-          maritalStatus:    doc.maritalStatus    || "",
           academicStrength: doc.academicStrength || "",
           educationLevel:   doc.educationLevel   || "",
           university:       doc.university       || "",
@@ -127,10 +121,6 @@ export default function TutorVerify() {
       nationality:      "สัญชาติ",
       religion:         "ศาสนา",
       birthDate:        "วันเกิด",
-      height:           "ส่วนสูง",
-      weight:           "น้ำหนัก",
-      bloodType:        "หมู่โลหิต",
-      maritalStatus:    "สถานภาพสมรส",
       academicStrength: "ความถนัดทางวิชาการ",
       educationLevel:   "ระดับการศึกษา",
       university:       "ชื่อสถาบันการศึกษา",
@@ -145,6 +135,11 @@ export default function TutorVerify() {
         newErrors[field] = `โปรดกรอกฟิลด์นี้`;
       }
     }
+
+    if (!idCard) newErrors.idCard = "กรุณาแนบไฟล์บัตรประชาชน";
+    if (!certificate) newErrors.certificate = "กรุณาแนบไฟล์ประกาศนียบัตร";
+    if (!transcript) newErrors.transcript = "กรุณาแนบไฟล์ Transcript";
+    if (!resume) newErrors.resume = "กรุณาแนบไฟล์ Resume";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -172,10 +167,6 @@ export default function TutorVerify() {
       formData.append("nationality",      form.nationality);
       formData.append("religion",         form.religion);
       formData.append("birthDate",        form.birthDate);
-      formData.append("height",           form.height);
-      formData.append("weight",           form.weight);
-      formData.append("bloodType",        form.bloodType);
-      formData.append("maritalStatus",    form.maritalStatus);
       formData.append("academicStrength", form.academicStrength);
       formData.append("educationLevel",   form.educationLevel);
       formData.append("university",       form.university);
@@ -187,7 +178,7 @@ export default function TutorVerify() {
       if (idCard)      formData.append("idCard",      idCard);
       if (certificate) formData.append("certificate", certificate);
       if (transcript)  formData.append("transcript",  transcript);
-      if (resume)      formData.append("resume",       resume);
+      if (resume)      formData.append("resume",      resume);
 
       const res = await fetch("/api/tutor/verify", {
         method: "POST",
@@ -279,15 +270,15 @@ export default function TutorVerify() {
     </div>
   );
 
-  const fileRow = (labelText: string, file: File | null, setter: (f: File | null) => void) => (
+  const fileRow = (labelText: string, file: File | null, setter: (f: File | null) => void, field: string) => (
     <div>
       <label className="block mb-1 text-sm text-gray-600">{labelText}</label>
-      <div className="flex items-center border rounded p-2">
+      <div className={`flex items-center border rounded p-2 ${errors[field] ? "border-red-500" : ""}`}>
         <span className="flex-1 text-sm text-gray-600">
           {file ? file.name : "ยังไม่ได้เลือกไฟล์"}
         </span>
         {!isSubmitted && (
-          <label className="bg-blue-500 text-white px-3 py-1 rounded cursor-pointer text-sm">
+          <label className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded cursor-pointer text-sm">
             เลือกไฟล์
             <input
               type="file"
@@ -297,24 +288,32 @@ export default function TutorVerify() {
           </label>
         )}
       </div>
+      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
     </div>
   );
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
       <h1 className="text-2xl font-bold mb-6">ติวเตอร์</h1>
 
-      <div className="bg-white p-8 rounded-xl shadow-md">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full">
 
         <div className="flex items-center mb-4">
-          <button onClick={() => router.back()} className="text-blue-500 hover:underline mr-4">
+          <button onClick={() => router.push("/home/tutor")} className="text-blue-500 hover:underline mr-4">
             ← ย้อนกลับ
           </button>
         </div>
 
+        {verifyStatus === "rejected" && (
+          <p className="text-red-500 mb-4 font-medium">
+            ❌ ไม่ผ่าน กรุณาแก้ไขข้อมูลแล้วส่งใหม่
+          </p>
+        )}
+
         <h2 className="text-xl font-semibold mb-4">ข้อมูลส่วนบุคคล</h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="flex flex-col">
             {label("รหัสบัตรประชาชน")}
             <input
@@ -332,22 +331,22 @@ export default function TutorVerify() {
             {errors.idCardNumber && <span className="text-red-500 text-xs mt-1">{errors.idCardNumber}</span>}
           </div>
 
-          {lockedInput("อีเมล",         "email")}
-          {lockedInput("ชื่อ",           "name")}
-          {lockedInput("นามสกุล",        "surname")}
-          {freeInput("ชื่อ (English)",    "firstNameEN")}
+          {lockedInput("อีเมล", "email")}
+          {lockedInput("ชื่อ", "name")}
+          {lockedInput("นามสกุล", "surname")}
+          {freeInput("ชื่อ (English)", "firstNameEN")}
           {freeInput("นามสกุล (English)", "lastNameEN")}
-          {lockedInput("เบอร์โทรศัพท์",  "phone")}
-          {freeInput("จังหวัดที่อาศัย",  "province")}
+          {lockedInput("เบอร์โทรศัพท์", "phone")}
+          {freeInput("จังหวัดที่อาศัย", "province")}
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          {freeInput("เชื้อชาติ",   "ethnicity")}
-          {freeInput("สัญชาติ",     "nationality")}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {freeInput("เชื้อชาติ", "ethnicity")}
+          {freeInput("สัญชาติ", "nationality")}
           {selectInput("ศาสนา", "religion", ["พุทธ", "คริสต์", "อิสลาม", "ฮินดู", "ซิกข์", "ไม่มีศาสนา", "อื่นๆ"])}
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="flex flex-col">
             {label("วันเกิด")}
             <input
@@ -363,19 +362,12 @@ export default function TutorVerify() {
             {errors.birthDate && <span className="text-red-500 text-xs mt-1">{errors.birthDate}</span>}
           </div>
 
-          {numericInput("ส่วนสูง (cm)", "height", 3)}
-          {numericInput("น้ำหนัก (kg)", "weight", 3)}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {selectInput("หมู่โลหิต",     "bloodType",     ["A", "B", "AB", "O"])}
-          {selectInput("สถานภาพสมรส",   "maritalStatus", ["โสด", "สมรส", "หย่าร้าง", "หม้าย"])}
           {freeInput("ความถนัดทางวิชาการ", "academicStrength")}
         </div>
 
         <h2 className="text-xl font-semibold mb-4">ข้อมูลการศึกษา</h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="flex flex-col">
             {label("ระดับการศึกษา")}
             <select
@@ -393,37 +385,38 @@ export default function TutorVerify() {
           </div>
 
           {freeInput("ชื่อสถาบันการศึกษา", "university")}
-          {freeInput("คณะ",                 "faculty")}
-          {freeInput("สาขาวิชา",            "major")}
-          {numericInput("เกรดเฉลี่ย (GPA)",    "gpa",      4)}
-          {numericInput("ประสบการณ์สอน (ปี)",  "tutorExp", 2)}
+          {freeInput("คณะ", "faculty")}
+          {freeInput("สาขาวิชา", "major")}
+          {numericInput("เกรดเฉลี่ย (GPA)", "gpa", 4)}
+          {numericInput("ประสบการณ์สอน (ปี)", "tutorExp", 2)}
         </div>
 
         <h2 className="text-xl font-semibold mb-4">แนบเอกสาร</h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {fileRow("บัตรประชาชน",              idCard,      setIdCard)}
-          {fileRow("ประกาศนียบัตร/ปริญญาบัตร", certificate, setCertificate)}
-          {fileRow("Transcript",                transcript,  setTranscript)}
-          {fileRow("Resume",                    resume,      setResume)}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {fileRow("บัตรประชาชน", idCard, setIdCard, "idCard")}
+          {fileRow("ประกาศนียบัตร/ปริญญาบัตร", certificate, setCertificate, "certificate")}
+          {fileRow("Transcript", transcript, setTranscript, "transcript")}
+          {fileRow("Resume", resume, setResume, "resume")}
         </div>
 
-        {!isSubmitted ? (
+        {!isSubmitted && (
           <button
             onClick={handleSubmit}
-            className="bg-blue-500 text-white px-6 py-2 rounded"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
           >
             ส่งข้อมูล
           </button>
-        ) : (
+        )}
+
+        {isSubmitted && verifyStatus !== "rejected" && (
           <div className={`text-sm font-medium px-4 py-2 rounded w-fit ${
-            verifyStatus === "approved" ? "bg-green-100 text-green-700" :
-            verifyStatus === "rejected" ? "bg-red-100 text-red-700" :
-            "bg-yellow-100 text-yellow-700"
+            verifyStatus === "approved"
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700"
           }`}>
             {verifyStatus === "approved" && "✅ แอดมินอนุมัติแล้ว"}
-            {verifyStatus === "rejected" && "❌ ไม่ผ่านการยืนยัน"}
-            {verifyStatus === "pending"  && "⏳ ส่งข้อมูลแล้ว รอการยืนยันจากแอดมิน"}
+            {verifyStatus === "pending" && "⏳ ส่งข้อมูลแล้ว รอการยืนยันจากแอดมิน"}
           </div>
         )}
 

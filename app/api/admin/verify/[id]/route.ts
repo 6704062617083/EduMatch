@@ -34,7 +34,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const doc = await VerificationDocument.findByIdAndUpdate(
       id,
       updateData,
-      { returnDocument: "after" } // ✅ แก้ deprecated warning ด้วย
+      { returnDocument: "after" } 
     ).populate("userId", "name surname email");
 
     if (!doc) {

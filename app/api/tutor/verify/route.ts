@@ -12,7 +12,7 @@ async function uploadToCloudinary(file: File) {
     cloudinary.uploader
       .upload_stream(
         {
-          resource_type: "image", // ✅ ทุกไฟล์รวม PDF
+          resource_type: "image", 
           type: "upload",
           use_filename: true,
           unique_filename: true,
@@ -59,10 +59,6 @@ export async function POST(req: Request) {
     const nationality      = formData.get("nationality")?.toString()      || null;
     const religion         = formData.get("religion")?.toString()         || null;
     const birthDateRaw     = formData.get("birthDate")?.toString()        || null;
-    const height           = formData.get("height")?.toString()           || null;
-    const weight           = formData.get("weight")?.toString()           || null;
-    const bloodType        = formData.get("bloodType")?.toString()        || null;
-    const maritalStatus    = formData.get("maritalStatus")?.toString()    || null;
     const academicStrength = formData.get("academicStrength")?.toString() || null;
     const educationLevel   = formData.get("educationLevel")?.toString()   || null;
     const university       = formData.get("university")?.toString()       || null;
@@ -98,10 +94,6 @@ export async function POST(req: Request) {
       nationality,
       religion,
       birthDate:        birthDateRaw ? new Date(birthDateRaw) : null,
-      height:           height       ? Number(height)         : null,
-      weight:           weight       ? Number(weight)         : null,
-      bloodType,
-      maritalStatus,
       academicStrength,
       educationLevel,
       university,
