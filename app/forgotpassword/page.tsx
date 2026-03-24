@@ -175,7 +175,7 @@ export default function ForgotPasswordPage() {
               disabled={timer > 0}
               style={{
                 padding: "10px",
-                background: timer > 0 ? "#ccc" : "#0070f3",
+                background: timer > 0 ? "#ccc" : "#F4A261",
                 color: "white",
                 border: "none",
                 borderRadius: "5px",
@@ -222,7 +222,7 @@ export default function ForgotPasswordPage() {
                 style={{
                   marginTop: "15px",
                   padding: "8px 20px",
-                  background: "#0070f3",
+                  background: "#142D4D",
                   color: "white",
                   border: "none",
                   borderRadius: "6px",
@@ -249,7 +249,7 @@ const inputStyle = {
 const buttonStyle = {
   width: "100%",
   padding: "10px",
-  background: "#0070f3",
+  background: "#FF5A00",
   color: "white",
   border: "none",
   borderRadius: "5px",

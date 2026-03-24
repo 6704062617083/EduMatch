@@ -1,6 +1,7 @@
 // use tailwind css
 "use client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function LoginUI({
   email,
@@ -16,6 +17,13 @@ export default function LoginUI({
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-20">
+      <Image 
+          src="/Asset 5.png" 
+          alt="Edumatch Logo" 
+          width={240}
+          height={240}
+          className="mb-6"
+        />
         <h1 className="text-3xl font-bold mb-10">Welcome to Edumatch</h1>
       <div className="w-[420px] bg-white p-10 rounded-[30px] shadow-lg text-center relative">
 
