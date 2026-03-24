@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 
 const SUBJECT_TAGS = [
   "คณิตศาสตร์", "ฟิสิกส์", "เคมี", "ชีววิทยา", "วิทยาศาสตร์ทั่วไป",
@@ -157,7 +159,15 @@ export default function StudentHome() {
         justifyContent: "space-between",
         alignItems: "center",
       }}>
-        <span>คอร์สเรียน</span>
+        <Link href="/home/student">
+          <Image
+            src="/Edu_icon.png"
+            alt="Edumatch Logo"
+            width={140}
+            height={40}
+            style={{ cursor: "pointer", objectFit: "contain" }}
+          />
+        </Link>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "16px", fontWeight: "normal" }}>
@@ -225,12 +235,15 @@ export default function StudentHome() {
         {filteredCourses.length === 0 && <p>No courses available</p>}
 
         {filteredCourses.map((course: any) => (
-          <div key={course._id} style={{ border: "1px solid #ccc", padding: "20px", borderRadius: "10px", marginBottom: "15px" }}>
+          <div 
+            key={course._id} 
+            className="bg-white p-6 rounded-xl border border-gray-200 mb-4 shadow-sm hover:shadow-md transition-shadow duration-300"
+          >
             <h3 style={{ fontSize: "22px", fontWeight: "bold", marginBottom: "8px" }}>{course.title}</h3>
             <p>Tutor: {course.tutor?.name} {course.tutor?.surname}</p>
             <p style={{ fontWeight: "bold" }}>ราคา: {course.price?.toLocaleString()} บาท</p>
 
-            <div style={{ marginBottom: "10px" }}>
+            <div style={{ marginBottom: "10px", marginTop: "10px" }}>
               {course.tags?.map((tag: string) => (
                 <span key={tag} style={{
                   background: "#e6f0ff", padding: "4px 10px",
@@ -241,7 +254,7 @@ export default function StudentHome() {
               ))}
             </div>
 
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
               <button style={detailBtn} onClick={() => openDetail(course)}>รายละเอียด</button>
               <button style={profileBtn} onClick={() => openTutorProfile(course.tutor?._id)}>ติวเตอร์โปรไฟล์</button>
               <button style={bookBtn} onClick={() => openBookingConfirm(course)}>จองเรียน</button>
