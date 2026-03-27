@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function TutorHome() {
   const [showModal, setShowModal] = useState(false);
@@ -162,7 +163,15 @@ export default function TutorHome() {
           alignItems: "center",
         }}
       >
-        <span>ติวเตอร์</span>
+        <Link href="/home/tutor">
+          <Image
+            src="/Edu_icon.png"
+            alt="Edumatch Logo"
+            width={140}
+            height={40}
+            style={{ cursor: "pointer", objectFit: "contain" }}
+          />
+        </Link>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "16px", fontWeight: "normal" }}>
@@ -239,6 +248,8 @@ export default function TutorHome() {
                 padding: "20px",
                 borderRadius: "10px",
                 marginBottom: "15px",
+                backgroundColor: "white",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
               }}
             >
               <h3

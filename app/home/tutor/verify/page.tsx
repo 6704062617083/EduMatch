@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function TutorVerify() {
 
@@ -298,7 +300,17 @@ export default function TutorVerify() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
-      <h1 className="text-2xl font-bold mb-6">ติวเตอร์</h1>
+      <div className="mb-6">
+        <Link href="/home/tutor">
+          <Image
+            src="/Edu_icon.png" 
+            alt="Edumatch Logo"
+            width={140}
+            height={40}
+            className="cursor-pointer object-contain"
+          />
+        </Link>
+      </div>
 
       <div className="bg-white p-8 rounded-xl shadow-md w-full">
 
