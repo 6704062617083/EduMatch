@@ -71,9 +71,10 @@ export async function POST(req: Request) {
     const certificateFile = formData.get("certificate") as File | null;
     const transcriptFile  = formData.get("transcript")  as File | null;
     const resumeFile      = formData.get("resume")      as File | null;
+    const tutorPhotoFile  = formData.get("tutorPhoto")  as File | null;
 
     const MAX_SIZE = 5 * 1024 * 1024;
-    for (const file of [idCardFile, certificateFile, transcriptFile, resumeFile]) {
+    for (const file of [idCardFile, certificateFile, transcriptFile, resumeFile, tutorPhotoFile]) {
       if (file && file.size > MAX_SIZE) {
         return NextResponse.json({ error: "ไฟล์ต้องไม่เกิน 5MB" }, { status: 400 });
       }
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
     const certificateUrl = certificateFile ? (await uploadToCloudinary(certificateFile)).secure_url : null;
     const transcriptUrl  = transcriptFile  ? (await uploadToCloudinary(transcriptFile)).secure_url  : null;
     const resumeUrl      = resumeFile      ? (await uploadToCloudinary(resumeFile)).secure_url      : null;
+    const tutorPhotoUrl  = tutorPhotoFile  ? (await uploadToCloudinary(tutorPhotoFile)).secure_url  : null;
 
     const doc = await VerificationDocument.create({
       userId,
@@ -105,6 +107,7 @@ export async function POST(req: Request) {
       certificateUrl,
       transcriptUrl,
       resumeUrl,
+      tutorPhotoUrl,
       status: "pending",
     });
 

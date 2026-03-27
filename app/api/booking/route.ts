@@ -57,6 +57,11 @@ export async function POST(req: NextRequest) {
       bookingStatus: "pending"
     });
 
+    await Booking.findByIdAndUpdate(booking._id, {
+      paymentStatus: "pending",
+      price: course.price
+    });
+
     return NextResponse.json(booking, { status: 201 });
 
   } catch (error) {
@@ -92,12 +97,10 @@ export async function GET(req: NextRequest) {
       result.push({
         bookingId: booking.bookingId,
         studentName: student?.name || "Unknown",
-
         courseTitle: course?.title || "",
         startTime: course?.startTime,
         endTime: course?.endTime,
         price: course?.price,
-
         createdAt: booking.createdAt
       });
     }

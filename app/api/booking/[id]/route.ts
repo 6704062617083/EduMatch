@@ -37,6 +37,13 @@ export async function PATCH(
     booking.bookingStatus = action === "accept" ? "waiting_payment" : "cancelled";
     await booking.save();
 
+    await Booking.findOneAndUpdate(
+      { bookingId: id },
+      {
+        paymentStatus: action === "accept" ? "waiting_payment" : "pending"
+      }
+    );
+
     return NextResponse.json(booking);
 
   } catch (err) {

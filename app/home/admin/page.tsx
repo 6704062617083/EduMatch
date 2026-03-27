@@ -21,6 +21,7 @@ interface TutorRequest {
   certificateUrl?: string;
   transcriptUrl?: string;
   resumeUrl?: string;
+  tutorPhotoUrl?: string;
   ethnicity?: string;
   nationality?: string;
   religion?: string;
@@ -30,13 +31,18 @@ interface TutorRequest {
 
 interface PaymentRequest {
   _id: string;
-  paymentStatus: "pending" | "slip_uploaded" | "verified" | "failed";
-  amount: number;
+  bookingId: string;
+  paymentStatus: "pending" | "waiting_payment" | "slip_uploaded" | "paid";
+  price: number;
   slipUrl?: string;
-  slipUploadedAt?: string;
   studentId?: { name: string; surname: string };
   tutorId?: { name: string; surname: string };
   courseId?: { title: string };
+  wallet?: {
+    promptpayNumber?: string;
+    accountNumber?: string;
+    bankName?: string;
+  };
 }
 
 const TUTOR_STATUS: Record<string, { label: string; color: string }> = {
@@ -47,9 +53,9 @@ const TUTOR_STATUS: Record<string, { label: string; color: string }> = {
 
 const PAY_STATUS: Record<string, { label: string; color: string }> = {
   pending: { label: "รอชำระเงิน", color: "bg-gray-100 text-gray-600" },
+  waiting_payment: { label: "รอชำระเงิน", color: "bg-gray-100 text-gray-600" },
   slip_uploaded: { label: "รอตรวจสลิป", color: "bg-yellow-100 text-yellow-700" },
-  verified: { label: "ยืนยันแล้ว", color: "bg-green-100 text-green-700" },
-  failed: { label: "ไม่ผ่าน", color: "bg-red-100 text-red-700" },
+  paid: { label: "ยืนยันแล้ว", color: "bg-green-100 text-green-700" },
 };
 
 export default function AdminHome() {
@@ -71,9 +77,10 @@ export default function AdminHome() {
 
     Promise.all([
       fetch("/api/admin/verify").then((r) => r.json()),
-    ]).then(([tutors]) => {
+      fetch("/api/admin/payment").then((r) => r.json()),
+    ]).then(([tutors, payments]) => {
       setTutorData(tutors);
-      setPayData([]);
+      setPayData(payments);
       setLoading(false);
     });
   }, []);
@@ -177,36 +184,66 @@ export default function AdminHome() {
 
                   {isOpen && (
                     <div className="mt-4 text-sm space-y-4">
-
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">ข้อมูลส่วนบุคคล</h3>
+                        <h3 className="font-semibold text-gray-700 mb-2">
+                          ข้อมูลส่วนบุคคล
+                        </h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
                           <Field label="อีเมล" value={item.userId?.email} />
                           <Field label="เลขบัตรประชาชน" value={item.nationalId} />
-                          <Field label="ชื่อ-สกุล (EN)" value={`${item.firstNameEN ?? ""} ${item.lastNameEN ?? ""}`} />
+                          <Field
+                            label="ชื่อ-สกุล (EN)"
+                            value={`${item.firstNameEN ?? ""} ${
+                              item.lastNameEN ?? ""
+                            }`}
+                          />
                           <Field label="จังหวัด" value={item.province} />
                           <Field label="เชื้อชาติ" value={item.ethnicity} />
                           <Field label="สัญชาติ" value={item.nationality} />
                           <Field label="ศาสนา" value={item.religion} />
-                          <Field label="วันเกิด" value={item.birthDate ? new Date(item.birthDate).toLocaleDateString("th-TH") : "-"} />
-                          <Field label="ความถนัดทางวิชาการ" value={item.academicStrength} />
+                          <Field
+                            label="วันเกิด"
+                            value={
+                              item.birthDate
+                                ? new Date(item.birthDate).toLocaleDateString(
+                                    "th-TH"
+                                  )
+                                : "-"
+                            }
+                          />
+                          <Field
+                            label="ความถนัดทางวิชาการ"
+                            value={item.academicStrength}
+                          />
                         </div>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">การศึกษา</h3>
+                        <h3 className="font-semibold text-gray-700 mb-2">
+                          การศึกษา
+                        </h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
-                          <Field label="ระดับการศึกษา" value={item.educationLevel} />
+                          <Field
+                            label="ระดับการศึกษา"
+                            value={item.educationLevel}
+                          />
                           <Field label="สถาบัน" value={item.university} />
                           <Field label="คณะ" value={item.faculty} />
                           <Field label="สาขา" value={item.major} />
                           <Field label="GPA" value={item.gpa} />
-                          <Field label="ประสบการณ์สอน" value={item.tutorExp ? `${item.tutorExp} ปี` : "-"} />
+                          <Field
+                            label="ประสบการณ์สอน"
+                            value={
+                              item.tutorExp ? `${item.tutorExp} ปี` : "-"
+                            }
+                          />
                         </div>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">เอกสาร</h3>
+                        <h3 className="font-semibold text-gray-700 mb-2">
+                          เอกสาร
+                        </h3>
                         <div className="flex flex-wrap gap-2">
                           {item.idCardUrl && (
                             <a href={item.idCardUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
@@ -226,6 +263,11 @@ export default function AdminHome() {
                           {item.resumeUrl && (
                             <a href={item.resumeUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
                               Resume
+                            </a>
+                          )}
+                          {item.tutorPhotoUrl && (
+                            <a href={item.tutorPhotoUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
+                              รูปติวเตอร์
                             </a>
                           )}
                         </div>
@@ -257,7 +299,6 @@ export default function AdminHome() {
                           </button>
                         </div>
                       )}
-
                     </div>
                   )}
                 </div>
@@ -273,6 +314,118 @@ export default function AdminHome() {
             {payData.length === 0 && (
               <p className="text-gray-400">ยังไม่มีสลิป</p>
             )}
+
+            {payData.map((item) => {
+              const st = PAY_STATUS[item.paymentStatus];
+              const isOpen = expandedPay === item._id;
+
+              return (
+                <div key={item._id} className="border rounded-xl p-5 mb-4">
+                  <div
+                    onClick={() =>
+                      setExpandedPay(isOpen ? null : item._id)
+                    }
+                    className="flex justify-between cursor-pointer"
+                  >
+                    <div>
+                      <h3 className="font-bold">
+                        {item.studentId?.name} {item.studentId?.surname}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {item.courseId?.title}
+                      </p>
+                    </div>
+
+                    <span className={`px-3 py-1 rounded ${st.color}`}>
+                      {st.label}
+                    </span>
+                  </div>
+
+                  {isOpen && (
+                    <div className="mt-3 space-y-2">
+                      <p>ราคา: {item.price} บาท</p>
+
+                      <p>
+                        ติวเตอร์: {item.tutorId?.name} {item.tutorId?.surname}
+                      </p>
+
+                      <p>คอร์ส: {item.courseId?.title}</p>
+
+                      {item.wallet?.promptpayNumber ? (
+                        <p>PromptPay ของติวเตอร์: {item.wallet.promptpayNumber}</p>
+                      ) : item.wallet?.accountNumber ? (
+                        <p>
+                          บัญชีของติวเตอร์: {item.wallet.accountNumber} ({item.wallet.bankName})
+                        </p>
+                      ) : (
+                        <p className="text-gray-400">ไม่มีข้อมูลการรับเงิน</p>
+                      )}
+
+                      {item.slipUrl && (
+                        <img
+                          src={item.slipUrl}
+                          className="w-60 border rounded"
+                        />
+                      )}
+
+                      {item.paymentStatus === "slip_uploaded" && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={async () => {
+                              await fetch("/api/admin/payment", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  bookingId: item.bookingId,
+                                  action: "approve",
+                                }),
+                              });
+                              setPayData((prev) =>
+                                prev.map((p) =>
+                                  p.bookingId === item.bookingId
+                                    ? { ...p, paymentStatus: "paid" }
+                                    : p
+                                )
+                              );
+                            }}
+                            className="bg-green-600 text-white px-3 py-1 rounded"
+                          >
+                            ยืนยัน
+                          </button>
+
+                          <button
+                            onClick={async () => {
+                              await fetch("/api/admin/payment", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  bookingId: item.bookingId,
+                                  action: "reject",
+                                }),
+                              });
+                              setPayData((prev) =>
+                                prev.map((p) =>
+                                  p.bookingId === item.bookingId
+                                    ? { ...p, paymentStatus: "waiting_payment" }
+                                    : p
+                                )
+                              );
+                            }}
+                            className="bg-red-500 text-white px-3 py-1 rounded"
+                          >
+                            ไม่ผ่าน
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

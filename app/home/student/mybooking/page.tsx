@@ -8,8 +8,11 @@ export default function MyBooking() {
 
   const [bookings, setBookings] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let interval: any;
+
     fetch("/api/me")
       .then(res => {
         if (!res.ok) throw new Error("Not logged in");
@@ -17,12 +20,43 @@ export default function MyBooking() {
       })
       .then(u => {
         setUser(u);
-        fetch(`/api/studentbooking?studentId=${u._id}`)
-          .then(res => res.json())
-          .then(data => setBookings(data));
+
+        const fetchBookings = () => {
+          fetch(`/api/studentbooking?studentId=${u._id}`)
+            .then(res => res.json())
+            .then(data => {
+              setBookings(prev =>
+                JSON.stringify(prev) !== JSON.stringify(data) ? data : prev
+              );
+              setLoading(false);
+            });
+        };
+
+        fetchBookings();
+        interval = setInterval(fetchBookings, 3000);
       })
-      .catch(() => { window.location.href = "/login"; });
+      .catch(() => {
+        window.location.href = "/login";
+      });
+
+    return () => clearInterval(interval);
   }, []);
+
+  const getStatusLabel = (b: any) => {
+    if (b.paymentStatus === "slip_uploaded")
+      return { text: "รอแอดมินตรวจสอบ", color: "text-yellow-500" };
+    if (b.paymentStatus === "paid" || b.status === "confirmed")
+      return { text: "ยืนยันแล้ว", color: "text-green-500" };
+    if (b.status === "pending")
+      return { text: "รอติวเตอร์ตอบรับ", color: "text-yellow-500" };
+    if (b.status === "waiting_payment")
+      return { text: "รอชำระเงิน", color: "text-orange-500" };
+    if (b.status === "cancelled")
+      return { text: "ยกเลิกแล้ว", color: "text-red-500" };
+    if (b.status === "completed")
+      return { text: "เสร็จสิ้น", color: "text-gray-500" };
+    return { text: "ไม่ทราบสถานะ", color: "text-gray-400" };
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
@@ -42,41 +76,49 @@ export default function MyBooking() {
 
         <div className="space-y-4">
 
-          {bookings.length === 0 && (
+          {loading && <p>กำลังโหลด...</p>}
+
+          {!loading && bookings.length === 0 && (
             <p className="text-gray-500">ยังไม่มีการจอง</p>
           )}
 
-          {bookings.map((b) => (
-            <div key={b.bookingId} className="border rounded-xl p-4">
-              <p className="font-semibold">{b.courseTitle}</p>
+          {bookings.map((b) => {
+            const st = getStatusLabel(b);
+            return (
+              <div key={b.bookingId} className="border rounded-xl p-4">
+                <p className="font-semibold">{b.courseTitle}</p>
 
-              <p className="text-sm text-gray-600">
-                เวลา: {new Date(b.startTime).toLocaleString()} -{" "}
-                {new Date(b.endTime).toLocaleString()}
-              </p>
+                <p className="text-sm text-gray-600">
+                  เวลา: {new Date(b.startTime).toLocaleString()} -{" "}
+                  {new Date(b.endTime).toLocaleString()}
+                </p>
 
-              <p className="text-sm text-gray-600">ราคา: {b.price} บาท</p>
+                <p className="text-sm text-gray-600">ราคา: {b.price} บาท</p>
 
-              <p className="text-sm mt-2">
-                สถานะ:{" "}
-                <span className={
-                  b.status === "pending" ? "text-yellow-500" :
-                  b.status === "waiting_payment" ? "text-orange-500" :
-                  b.status === "confirmed" ? "text-green-500" :
-                  b.status === "cancelled" ? "text-red-500" :
-                  "text-gray-500"
-                }>
-                  {b.status === "pending" && "รอติวเตอร์ตอบรับ"}
-                  {b.status === "waiting_payment" && "รอชำระเงิน"}
-                  {b.status === "confirmed" && "ยืนยันแล้ว"}
-                  {b.status === "cancelled" && "ยกเลิกแล้ว"}
-                  {b.status === "completed" && "เสร็จสิ้น"}
-                </span>
-              </p>
+                <p className="text-sm mt-2">
+                  สถานะ: <span className={st.color}>{st.text}</span>
+                </p>
 
-              <p className="text-xs text-gray-400 mt-1">Booking: {b.bookingId}</p>
-            </div>
-          ))}
+                <p className="text-xs text-gray-400 mt-1">
+                  Booking: {b.bookingId}
+                </p>
+
+                {b.status === "waiting_payment" &&
+                  b.paymentStatus !== "slip_uploaded" && (
+                    <button
+                      className="mt-2 text-blue-600 hover:underline text-sm"
+                      onClick={() =>
+                        router.push(`/home/student/payment/${b.bookingId}`)
+                      }
+                    >
+                      {b.paymentStatus === "reject"
+                        ? "⚠️ สลิปไม่ผ่าน — อัปโหลดใหม่"
+                        : "ไปชำระเงิน"}
+                    </button>
+                  )}
+              </div>
+            );
+          })}
 
         </div>
       </div>

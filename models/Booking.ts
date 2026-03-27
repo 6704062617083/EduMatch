@@ -37,5 +37,15 @@ const BookingSchema = new mongoose.Schema({
   }
 });
 
+BookingSchema.add({
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "waiting_payment", "slip_uploaded", "paid"],
+    default: "pending"
+  },
+  slipUrl: String,
+  price: Number
+});
+
 export default mongoose.models.Booking ||
   mongoose.model("Booking", BookingSchema);

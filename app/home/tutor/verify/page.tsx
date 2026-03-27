@@ -32,6 +32,7 @@ export default function TutorVerify() {
   const [certificate, setCertificate] = useState<File | null>(null);
   const [transcript, setTranscript] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
+  const [tutorPhoto, setTutorPhoto] = useState<File | null>(null);
 
   const router = useRouter();
   const MAX_SIZE = 5 * 1024 * 1024;
@@ -140,6 +141,7 @@ export default function TutorVerify() {
     if (!certificate) newErrors.certificate = "กรุณาแนบไฟล์ประกาศนียบัตร";
     if (!transcript) newErrors.transcript = "กรุณาแนบไฟล์ Transcript";
     if (!resume) newErrors.resume = "กรุณาแนบไฟล์ Resume";
+    if (!tutorPhoto) newErrors.tutorPhoto = "กรุณาแนบรูปติวเตอร์";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -179,6 +181,7 @@ export default function TutorVerify() {
       if (certificate) formData.append("certificate", certificate);
       if (transcript)  formData.append("transcript",  transcript);
       if (resume)      formData.append("resume",      resume);
+      if (tutorPhoto)  formData.append("tutorPhoto",  tutorPhoto);
 
       const res = await fetch("/api/tutor/verify", {
         method: "POST",
@@ -398,6 +401,7 @@ export default function TutorVerify() {
           {fileRow("ประกาศนียบัตร/ปริญญาบัตร", certificate, setCertificate, "certificate")}
           {fileRow("Transcript", transcript, setTranscript, "transcript")}
           {fileRow("Resume", resume, setResume, "resume")}
+          {fileRow("รูปติวเตอร์", tutorPhoto, setTutorPhoto, "tutorPhoto")}
         </div>
 
         {!isSubmitted && (

@@ -33,6 +33,7 @@ const VerificationDocumentSchema = new mongoose.Schema(
     certificateUrl: String,
     transcriptUrl:  String,
     resumeUrl:      String,
+    tutorPhotoUrl:  String,
 
     status: {
       type: String,

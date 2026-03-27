@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import Course from "@/models/Course";
+import Payment from "@/models/Payment";
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,23 +20,38 @@ export async function GET(req: NextRequest) {
     const bookings = await Booking.find({ studentId })
       .sort({ createdAt: -1 });
 
-    const result = [];
+    const bookingIds = bookings.map(b => b._id);
 
-    for (const booking of bookings) {
-      const course = await Course.findById(booking.courseId);
+    const payments = await Payment.find({
+      bookingId: { $in: bookingIds }
+    });
 
-      result.push({
-        bookingId: booking.bookingId,
+    const paymentMap = new Map();
+    payments.forEach(p => {
+      paymentMap.set(p.bookingId.toString(), p);
+    });
 
-        courseTitle: course?.title || "",
-        startTime: course?.startTime,
-        endTime: course?.endTime,
-        price: course?.price,
+    const result = await Promise.all(
+      bookings.map(async (booking) => {
+        const course = await Course.findById(booking.courseId);
 
-        status: booking.bookingStatus,
-        createdAt: booking.createdAt
-      });
-    }
+        const payment = paymentMap.get(booking._id.toString());
+
+        return {
+          bookingId: booking.bookingId,
+
+          courseTitle: course?.title || "",
+          startTime: course?.startTime,
+          endTime: course?.endTime,
+          price: payment?.amount || course?.price,
+
+          status: booking.bookingStatus,
+          paymentStatus: payment?.paymentStatus || "pending",
+
+          createdAt: booking.createdAt
+        };
+      })
+    );
 
     return NextResponse.json(result);
 

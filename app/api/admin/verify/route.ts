@@ -14,7 +14,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const data = await VerificationDocument.find()
+    const data = await VerificationDocument.find({ status: "pending" })
       .populate("userId", "name surname email phone") 
       .sort({ createdAt: -1 });
 

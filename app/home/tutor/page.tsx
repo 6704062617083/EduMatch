@@ -336,7 +336,7 @@ export default function TutorHome() {
             alignItems: "flex-end",
           }}
         >
-          {/* ✅ แก้แค่ปุ่มนี้ */}
+
           <button
             onClick={() => {
               if (verifyStatus !== "approved") {
@@ -387,6 +387,18 @@ export default function TutorHome() {
               }}
             >
               verify status
+            </button>
+          </Link>
+
+          <Link href="/home/tutor/wallet">
+            <button
+              style={{
+                ...createBtn,
+                marginTop: "10px",
+                background: "#e28223",
+              }}
+            >
+              My Wallet
             </button>
           </Link>
         </div>
