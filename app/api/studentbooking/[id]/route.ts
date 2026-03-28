@@ -4,20 +4,35 @@ import Booking from "@/models/Booking";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { bookingId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectDB();
 
-    const { bookingId } = params;
+    const { id } = params;
     const body = await req.json();
 
-    await Booking.findOneAndUpdate(
-      { bookingId },
-      { status: body.status }
+    if (!body.status) {
+      return NextResponse.json(
+        { message: "status is required" },
+        { status: 400 }
+      );
+    }
+
+    const updated = await Booking.findOneAndUpdate(
+      { bookingId: id },
+      { bookingStatus: body.status },
+      { new: true }
     );
 
-    return NextResponse.json({ success: true });
+    if (!updated) {
+      return NextResponse.json(
+        { message: "Booking not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: updated });
 
   } catch (error) {
     console.error(error);
