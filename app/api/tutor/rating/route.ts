@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User";
+import Tutor from "@/models/Tutor";
 import { cookies } from "next/headers";
 
 export async function GET() {
@@ -14,13 +14,16 @@ export async function GET() {
       return NextResponse.json({ message: "Not logged in" }, { status: 401 });
     }
 
-    const user = await User.findById(userId).select("-password");
+    const tutor = await Tutor.findOne({ userId });
 
-    if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    if (!tutor) {
+      return NextResponse.json({ message: "Tutor not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json({
+      avgRating: tutor.avgRating,
+      totalReviews: tutor.totalReviews,
+    });
 
   } catch (error: any) {
     return NextResponse.json(

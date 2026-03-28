@@ -14,7 +14,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params; 
+    const { id } = await params;
 
     const { status, rejectReason } = await req.json();
 
@@ -34,7 +34,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const doc = await VerificationDocument.findByIdAndUpdate(
       id,
       updateData,
-      { returnDocument: "after" } 
+      { returnDocument: "after" }
     ).populate("userId", "name surname email");
 
     if (!doc) {

@@ -12,15 +12,17 @@ async function uploadToCloudinary(file: File) {
     cloudinary.uploader
       .upload_stream(
         {
-          resource_type: "image", 
+          resource_type: "auto", 
           type: "upload",
           use_filename: true,
           unique_filename: true,
         },
         (err, result) => {
-          if (err) reject(err);
-          else {
-            console.log("secure_url:", result?.secure_url);
+          if (err) {
+            console.error("Cloudinary error:", err); 
+            reject(err);
+          } else {
+            console.log("Cloudinary result:", result); 
             resolve(result);
           }
         }
@@ -72,9 +74,13 @@ export async function POST(req: Request) {
     const transcriptFile  = formData.get("transcript")  as File | null;
     const resumeFile      = formData.get("resume")      as File | null;
     const tutorPhotoFile  = formData.get("tutorPhoto")  as File | null;
+    const paymentQrFile   = formData.get("paymentQr")   as File | null;
+
+    console.log("paymentQrFile:", paymentQrFile);
+    console.log("paymentQr size:", paymentQrFile?.size);
 
     const MAX_SIZE = 5 * 1024 * 1024;
-    for (const file of [idCardFile, certificateFile, transcriptFile, resumeFile, tutorPhotoFile]) {
+    for (const file of [idCardFile, certificateFile, transcriptFile, resumeFile, tutorPhotoFile, paymentQrFile]) {
       if (file && file.size > MAX_SIZE) {
         return NextResponse.json({ error: "ไฟล์ต้องไม่เกิน 5MB" }, { status: 400 });
       }
@@ -85,6 +91,16 @@ export async function POST(req: Request) {
     const transcriptUrl  = transcriptFile  ? (await uploadToCloudinary(transcriptFile)).secure_url  : null;
     const resumeUrl      = resumeFile      ? (await uploadToCloudinary(resumeFile)).secure_url      : null;
     const tutorPhotoUrl  = tutorPhotoFile  ? (await uploadToCloudinary(tutorPhotoFile)).secure_url  : null;
+
+    let paymentQrUrl = null;
+
+    if (paymentQrFile) {
+      const uploadRes = await uploadToCloudinary(paymentQrFile);
+      console.log("QR upload result:", uploadRes); // debug
+      paymentQrUrl = uploadRes.secure_url || uploadRes.url || null;
+    }
+
+    console.log("paymentQrUrl final:", paymentQrUrl);
 
     const doc = await VerificationDocument.create({
       userId,
@@ -108,6 +124,7 @@ export async function POST(req: Request) {
       transcriptUrl,
       resumeUrl,
       tutorPhotoUrl,
+      paymentQrUrl, 
       status: "pending",
     });
 

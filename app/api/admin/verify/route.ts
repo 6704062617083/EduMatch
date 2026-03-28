@@ -15,7 +15,7 @@ export async function GET() {
     }
 
     const data = await VerificationDocument.find({ status: "pending" })
-      .populate("userId", "name surname email phone") 
+      .populate("userId", "name surname email phone")
       .sort({ createdAt: -1 });
 
     return NextResponse.json(data);

@@ -228,6 +228,12 @@ export default function StudentHome() {
           >
             My Booking
           </button>
+          <button
+            onClick={() => router.push("/home/student/myschedule")}
+            style={{ padding: "10px 16px", borderRadius: "6px", border: "1px solid #ccc", cursor: "pointer", background: "white" }}
+          >
+            My Schedule
+          </button>
         </div>
 
         <h2 style={{ marginBottom: "20px" }}>Available Courses</h2>

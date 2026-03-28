@@ -35,6 +35,7 @@ export default function TutorVerify() {
   const [transcript, setTranscript] = useState<File | null>(null);
   const [resume, setResume] = useState<File | null>(null);
   const [tutorPhoto, setTutorPhoto] = useState<File | null>(null);
+  const [paymentQr, setPaymentQr] = useState<File | null>(null);
 
   const router = useRouter();
   const MAX_SIZE = 5 * 1024 * 1024;
@@ -144,6 +145,7 @@ export default function TutorVerify() {
     if (!transcript) newErrors.transcript = "กรุณาแนบไฟล์ Transcript";
     if (!resume) newErrors.resume = "กรุณาแนบไฟล์ Resume";
     if (!tutorPhoto) newErrors.tutorPhoto = "กรุณาแนบรูปติวเตอร์";
+    if (!paymentQr) newErrors.paymentQr = "กรุณาแนบ QR โค้ดรับเงิน";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -184,6 +186,7 @@ export default function TutorVerify() {
       if (transcript)  formData.append("transcript",  transcript);
       if (resume)      formData.append("resume",      resume);
       if (tutorPhoto)  formData.append("tutorPhoto",  tutorPhoto);
+      if (paymentQr)   formData.append("paymentQr",   paymentQr);
 
       const res = await fetch("/api/tutor/verify", {
         method: "POST",
@@ -297,7 +300,6 @@ export default function TutorVerify() {
     </div>
   );
 
-
   return (
     <div className="min-h-screen bg-gray-100 p-10">
       <div className="mb-6">
@@ -315,7 +317,7 @@ export default function TutorVerify() {
       <div className="bg-white p-8 rounded-xl shadow-md w-full">
 
         <div className="flex items-center mb-4">
-          <button onClick={() => router.push("/home/tutor")} className="text-blue-500 hover:underline mr-4">
+          <button onClick={() => router.push("/home/tutor")} className="text-black-500 hover:underline mr-4">
             ← ย้อนกลับ
           </button>
         </div>
@@ -414,6 +416,7 @@ export default function TutorVerify() {
           {fileRow("Transcript", transcript, setTranscript, "transcript")}
           {fileRow("Resume", resume, setResume, "resume")}
           {fileRow("รูปติวเตอร์", tutorPhoto, setTutorPhoto, "tutorPhoto")}
+          {fileRow("QR โค้ดรับเงิน", paymentQr, setPaymentQr, "paymentQr")}
         </div>
 
         {!isSubmitted && (

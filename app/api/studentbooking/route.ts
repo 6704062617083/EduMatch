@@ -17,8 +17,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const bookings = await Booking.find({ studentId })
-      .sort({ createdAt: -1 });
+    const bookings = await Booking.find({ studentId }).sort({ createdAt: -1 });
 
     const bookingIds = bookings.map(b => b._id);
 
@@ -34,20 +33,19 @@ export async function GET(req: NextRequest) {
     const result = await Promise.all(
       bookings.map(async (booking) => {
         const course = await Course.findById(booking.courseId);
-
         const payment = paymentMap.get(booking._id.toString());
 
         return {
+          _id: booking._id,
           bookingId: booking.bookingId,
-
+          tutorId: booking.tutorId,
           courseTitle: course?.title || "",
           startTime: course?.startTime,
           endTime: course?.endTime,
           price: payment?.amount || course?.price,
-
+          classLink: course?.classLink || "",
           status: booking.bookingStatus,
           paymentStatus: payment?.paymentStatus || "pending",
-
           createdAt: booking.createdAt
         };
       })

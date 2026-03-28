@@ -22,7 +22,10 @@ export default function TutorHome() {
 
   const [showMenu, setShowMenu] = useState(false);
 
-  const [verifyStatus, setVerifyStatus] = useState<string>(""); // ✅
+  const [verifyStatus, setVerifyStatus] = useState<string>("");
+
+  const [avgRating, setAvgRating] = useState<number | null>(null);
+  const [totalReviews, setTotalReviews] = useState<number>(0);
 
   const subjectTags = [
     "คณิตศาสตร์",
@@ -44,29 +47,36 @@ export default function TutorHome() {
     "AI",
     "TGAT1",
     "TGAT2",
-    "TGAT3"
+    "TGAT3",
   ];
 
   useEffect(() => {
-  fetch("/api/me")
-    .then(res => {
-      if (!res.ok) throw new Error("Not logged in");
-      return res.json();
-    })
-    .then(data => {
-      setUser(data);
-      fetchCourses(data._id);
-    })
-    .catch(() => {
-      window.location.href = "/login";
-    });
+    fetch("/api/me")
+      .then((res) => {
+        if (!res.ok) throw new Error("Not logged in");
+        return res.json();
+      })
+      .then((data) => {
+        setUser(data);
+        fetchCourses(data._id);
+      })
+      .catch(() => {
+        window.location.href = "/login";
+      });
 
-  fetch("/api/tutor/verify/status")
-    .then(res => res.json())
-    .then(doc => {
-      if (doc?.status) setVerifyStatus(doc.status);
-    });
-}, []);
+    fetch("/api/tutor/verify/status")
+      .then((res) => res.json())
+      .then((doc) => {
+        if (doc?.status) setVerifyStatus(doc.status);
+      });
+
+    fetch("/api/tutor/rating")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.avgRating !== undefined) setAvgRating(data.avgRating);
+        if (data?.totalReviews !== undefined) setTotalReviews(data.totalReviews);
+      });
+  }, []);
 
   async function fetchCourses(tutorId: string) {
     try {
@@ -150,6 +160,14 @@ export default function TutorHome() {
     window.location.href = "/";
   }
 
+  function renderStars(rating: number) {
+    return Array.from({ length: 5 }, (_, i) => (
+      <span key={i} className={i < Math.round(rating) ? "text-[#f5a623] text-sm" : "text-gray-300 text-sm"}>
+        ★
+      </span>
+    ));
+  }
+
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <div
@@ -173,58 +191,36 @@ export default function TutorHome() {
           />
         </Link>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "16px", fontWeight: "normal" }}>
-            {user?.name} {user?.surname}
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end">
+            <span className="text-base font-normal">
+              {user?.name} {user?.surname}
+            </span>
+            {avgRating !== null && (
+              <div className="flex items-center gap-1 mt-[2px]">
+                {renderStars(avgRating)}
+                <span className="text-xs text-gray-600">
+                  {avgRating.toFixed(1)} ({totalReviews} รีวิว)
+                </span>
+              </div>
+            )}
+          </div>
 
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
+          <div className="relative flex flex-col items-center">
             <div
               onClick={() => setShowMenu(!showMenu)}
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                border: "2px solid black",
-                cursor: "pointer",
-              }}
+              className="w-10 h-10 rounded-full border-2 border-black cursor-pointer"
             ></div>
 
-            <div style={{ fontSize: "12px", marginTop: "4px" }}>
+            <div className="text-xs mt-1">
               {user?.role}
             </div>
 
             {showMenu && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "60px",
-                  right: "0",
-                  background: "white",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  padding: "10px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              >
+              <div className="absolute top-[60px] right-0 bg-white border border-gray-300 rounded-lg p-2.5 shadow-md">
                 <button
                   onClick={handleLogout}
-                  style={{
-                    background: "#ff4d4f",
-                    color: "white",
-                    border: "none",
-                    padding: "6px 10px",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                  }}
+                  className="bg-red-500 text-white px-2.5 py-1.5 rounded-md text-xs cursor-pointer"
                 >
                   Logout
                 </button>
@@ -234,8 +230,8 @@ export default function TutorHome() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flex: 1 }}>
-        <div style={{ flex: 1, padding: "40px" }}>
+      <div className="flex flex-1">
+        <div className="flex-1 p-10">
           <h2>My Courses</h2>
 
           {courses.length === 0 && <p>No courses yet</p>}
@@ -252,14 +248,7 @@ export default function TutorHome() {
                 boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
               }}
             >
-              <h3
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "700",
-                  marginBottom: "6px",
-                  color: "#111",
-                }}
-              >
+              <h3 className="text-2xl font-bold mb-[6px] text-gray-900">
                 {course.title}
               </h3>
 
@@ -279,21 +268,15 @@ export default function TutorHome() {
                   : "-"}
               </p>
 
-              <p style={{ fontWeight: "bold" }}>
+              <p className="font-bold">
                 ราคา: {course.price?.toLocaleString()} บาท
               </p>
 
-              <div style={{ marginBottom: "10px" }}>
+              <div className="mb-2.5">
                 {course.tags?.map((tag: string) => (
                   <span
                     key={tag}
-                    style={{
-                      background: "#e6f0ff",
-                      padding: "4px 10px",
-                      borderRadius: "20px",
-                      fontSize: "12px",
-                      marginRight: "5px",
-                    }}
+                    className="bg-blue-100 px-2.5 py-1 rounded-full text-xs mr-[5px]"
                   >
                     {tag}
                   </span>
@@ -309,9 +292,9 @@ export default function TutorHome() {
                 </p>
               )}
 
-              <div style={{ marginTop: "10px" }}>
+              <div className="mt-2.5">
                 <button
-                  style={editBtn}
+                  className="px-4 py-1.5 bg-blue-500 text-white rounded-md mr-2.5 cursor-pointer"
                   onClick={() => {
                     setEditingId(course._id);
                     setCourseName(course.title);
@@ -328,7 +311,7 @@ export default function TutorHome() {
                 </button>
 
                 <button
-                  style={deleteBtn}
+                  className="px-4 py-1.5 bg-red-500 text-white rounded-md cursor-pointer"
                   onClick={() => handleDelete(course._id)}
                 >
                   Delete
@@ -338,16 +321,7 @@ export default function TutorHome() {
           ))}
         </div>
 
-        <div
-          style={{
-            width: "250px",
-            padding: "40px 60px 40px 0",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-          }}
-        >
-
+        <div className="w-[250px] pt-10 pr-[60px] pb-10 flex flex-col items-end">
           <button
             onClick={() => {
               if (verifyStatus !== "approved") {
@@ -357,84 +331,57 @@ export default function TutorHome() {
               setEditingId(null);
               setShowModal(true);
             }}
-            style={{
-              ...createBtn,
-              marginTop: "30px",
-            }}
+            className="px-5 py-2 bg-blue-500 text-white rounded-md cursor-pointer mt-[30px]"
           >
             + Create course
           </button>
 
           <Link href="/home/tutor/verify">
-            <button
-              style={{
-                ...createBtn,
-                marginTop: "10px",
-                background: "#555",
-              }}
-            >
+            <button className="px-5 py-2 bg-gray-600 text-white rounded-md cursor-pointer mt-2.5">
               Verify account
             </button>
           </Link>
 
           <Link href="/home/tutor/request">
-            <button
-              style={{
-                ...createBtn,
-                marginTop: "10px",
-                background: "#2a0edd",
-              }}
-            >
+            <button className="px-5 py-2 bg-[#2a0edd] text-white rounded-md cursor-pointer mt-2.5">
               Booking request
             </button>
           </Link>
 
           <Link href="/home/tutor/status">
-            <button
-              style={{
-                ...createBtn,
-                marginTop: "10px",
-                background: "#6e5be7",
-              }}
-            >
+            <button className="px-5 py-2 bg-[#6e5be7] text-white rounded-md cursor-pointer mt-2.5">
               verify status
             </button>
           </Link>
 
           <Link href="/home/tutor/wallet">
-            <button
-              style={{
-                ...createBtn,
-                marginTop: "10px",
-                background: "#e28223",
-              }}
-            >
+            <button className="px-5 py-2 bg-[#e28223] text-white rounded-md cursor-pointer mt-2.5">
               My Wallet
+            </button>
+          </Link>
+
+          <Link href="/home/tutor/myschedule">
+            <button className="px-5 py-2 bg-[#ffd7b0] text-black rounded-md cursor-pointer mt-2.5">
+              My Schedule
             </button>
           </Link>
         </div>
       </div>
 
       {showModal && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <h2 style={{ marginBottom: "20px" }}>
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white p-10 rounded-xl w-[700px]">
+            <h2 className="mb-5">
               {editingId ? "Edit Course" : "Create Course"}
             </h2>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "15px",
-              }}
-            >
+            <div className="grid grid-cols-2 gap-[15px]">
               <input
                 type="text"
                 placeholder="Course Name"
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
-                style={inputStyle}
+                className="w-full p-2.5 rounded-md border border-gray-300"
               />
 
               <input
@@ -442,7 +389,7 @@ export default function TutorHome() {
                 placeholder="ราคา"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                style={inputStyle}
+                className="w-full p-2.5 rounded-md border border-gray-300"
                 required
               />
 
@@ -450,39 +397,20 @@ export default function TutorHome() {
                 placeholder="Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                style={{ ...inputStyle, gridColumn: "span 2", height: "80px" }}
+                className="w-full p-2.5 rounded-md border border-gray-300 col-span-2 h-[80px]"
               />
 
-              <div style={{ position: "relative" }}>
+              <div className="relative">
                 <div
                   onClick={() => setShowTagList(!showTagList)}
-                  style={{
-                    ...inputStyle,
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
+                  className="w-full p-2.5 rounded-md border border-gray-300 cursor-pointer flex justify-between items-center"
                 >
                   <span>{tags.length > 0 ? tags.join(", ") : "เลือกวิชา"}</span>
                   <span>▼</span>
                 </div>
 
                 {showTagList && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "45px",
-                      left: 0,
-                      width: "100%",
-                      border: "1px solid #ccc",
-                      borderRadius: "6px",
-                      background: "white",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      zIndex: 10,
-                    }}
-                  >
+                  <div className="absolute top-[45px] left-0 w-full border border-gray-300 rounded-md bg-white max-h-[200px] overflow-y-auto z-10">
                     {subjectTags.map((tag) => {
                       const selected = tags.includes(tag);
 
@@ -490,13 +418,9 @@ export default function TutorHome() {
                         <div
                           key={tag}
                           onClick={() => toggleTag(tag)}
-                          style={{
-                            padding: "10px",
-                            cursor: "pointer",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            background: selected ? "#e6f0ff" : "white",
-                          }}
+                          className={`p-2.5 cursor-pointer flex justify-between ${
+                            selected ? "bg-blue-100" : "bg-white"
+                          }`}
                         >
                           <span>{tag}</span>
                           {selected && <span>✓</span>}
@@ -512,36 +436,36 @@ export default function TutorHome() {
                 placeholder="Google Meet / Zoom"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
-                style={inputStyle}
+                className="w-full p-2.5 rounded-md border border-gray-300"
               />
 
               <input
                 type="datetime-local"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                style={inputStyle}
+                className="w-full p-2.5 rounded-md border border-gray-300"
               />
 
               <input
                 type="datetime-local"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                style={inputStyle}
+                className="w-full p-2.5 rounded-md border border-gray-300"
               />
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: "25px",
-              }}
-            >
-              <button onClick={() => setShowModal(false)} style={cancelBtn}>
+            <div className="flex justify-between mt-[25px]">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-5 py-2 bg-gray-400 text-white rounded-md cursor-pointer"
+              >
                 Cancel
               </button>
 
-              <button onClick={handleCreate} style={createBtn}>
+              <button
+                onClick={handleCreate}
+                className="px-5 py-2 bg-blue-500 text-white rounded-md cursor-pointer"
+              >
                 {editingId ? "Update" : "Create"}
               </button>
             </div>
@@ -551,66 +475,3 @@ export default function TutorHome() {
     </div>
   );
 }
-
-const overlayStyle = {
-  position: "fixed" as const,
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const modalStyle = {
-  background: "white",
-  padding: "40px",
-  borderRadius: "12px",
-  width: "700px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
-};
-
-const createBtn = {
-  padding: "8px 20px",
-  background: "#0070f3",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-};
-
-const editBtn = {
-  padding: "6px 15px",
-  background: "#0070f3",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  marginRight: "10px",
-};
-
-const deleteBtn = {
-  padding: "6px 15px",
-  background: "#ff4d4f",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-};
-
-const cancelBtn = {
-  padding: "8px 20px",
-  background: "#aaa",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-};

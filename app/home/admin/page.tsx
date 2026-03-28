@@ -22,6 +22,7 @@ interface TutorRequest {
   transcriptUrl?: string;
   resumeUrl?: string;
   tutorPhotoUrl?: string;
+  paymentQrUrl?: string;
   ethnicity?: string;
   nationality?: string;
   religion?: string;
@@ -268,6 +269,11 @@ export default function AdminHome() {
                           {item.tutorPhotoUrl && (
                             <a href={item.tutorPhotoUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
                               รูปติวเตอร์
+                            </a>
+                          )}
+                          {item.paymentQrUrl && (
+                            <a href={item.paymentQrUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
+                              QR รับเงิน
                             </a>
                           )}
                         </div>

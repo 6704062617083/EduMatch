@@ -34,6 +34,7 @@ const VerificationDocumentSchema = new mongoose.Schema(
     transcriptUrl:  String,
     resumeUrl:      String,
     tutorPhotoUrl:  String,
+    paymentQrUrl:   String,
 
     status: {
       type: String,

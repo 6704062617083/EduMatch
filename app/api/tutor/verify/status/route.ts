@@ -17,7 +17,7 @@ export async function GET() {
     const doc = await VerificationDocument.findOne({ userId });
 
     if (!doc) {
-      return NextResponse.json(null); // ยังไม่เคยส่ง
+      return NextResponse.json(null);
     }
 
     return NextResponse.json(doc);
