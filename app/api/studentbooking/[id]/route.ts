@@ -4,12 +4,12 @@ import Booking from "@/models/Booking";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = context.params;
     const body = await req.json();
 
     if (!body.status) {
