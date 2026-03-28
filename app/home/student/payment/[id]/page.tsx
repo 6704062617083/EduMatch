@@ -8,6 +8,7 @@ export default function Page() {
   const { id } = useParams();
   const [qr, setQr] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,12 +82,43 @@ export default function Page() {
           className="w-full mb-3"
         />
         <button
-          onClick={handleUpload}
+          onClick={() => {
+            if (!file) return;
+            setShowConfirm(true);
+          }}
           className="w-full py-3 bg-[#f57c00] text-white rounded-lg font-bold text-base cursor-pointer hover:bg-[#e65100] transition-colors"
         >
           ส่งสลิป
         </button>
       </div>
+
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-96 shadow-xl">
+            <h3 className="text-lg font-bold mb-2 text-gray-800">ยืนยันการชำระเงิน</h3>
+            <p className="text-sm text-gray-600 mb-5">
+              หากทำการชำระเงินแล้ว <span className="font-semibold text-red-500">จะไม่สามารถรับเงินคืนได้</span> ยืนยันที่จะส่งสลิปหรือไม่?
+            </p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-sm"
+                onClick={() => setShowConfirm(false)}
+              >
+                ยกเลิก
+              </button>
+              <button
+                className="flex-1 py-2 rounded-xl bg-[#f57c00] text-white hover:bg-[#e65100] transition text-sm font-semibold"
+                onClick={() => {
+                  setShowConfirm(false);
+                  handleUpload();
+                }}
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

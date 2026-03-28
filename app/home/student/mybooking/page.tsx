@@ -9,6 +9,9 @@ export default function MyBooking() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [paymentBookingId, setPaymentBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     let interval: any;
@@ -67,6 +70,27 @@ export default function MyBooking() {
     return { text: "ไม่ทราบสถานะ", color: "text-gray-400" };
   };
 
+  const handleConfirmCancel = async () => {
+    if (!cancelBookingId) return;
+    setCancelling(true);
+    try {
+      await fetch(`/api/booking/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: cancelBookingId }),
+      });
+    } finally {
+      setCancelling(false);
+      setCancelBookingId(null);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    if (!paymentBookingId) return;
+    router.push(`/home/student/payment/${paymentBookingId}`);
+    setPaymentBookingId(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-10">
 
@@ -93,44 +117,109 @@ export default function MyBooking() {
 
           {bookings.map((b) => {
             const st = getStatusLabel(b);
+            const canCancel = b.bookingStatus !== "completed" && b.bookingStatus !== "cancelled";
             return (
-              <div key={b.bookingId} className="border rounded-xl p-4">
-                <p className="font-semibold">{b.courseTitle}</p>
+              <div key={b.bookingId} className="border rounded-xl p-4 flex justify-between items-start">
 
-                <p className="text-sm text-gray-600">
-                  เวลา: {new Date(b.startTime).toLocaleString()} -{" "}
-                  {new Date(b.endTime).toLocaleString()}
-                </p>
+                <div>
+                  <p className="font-semibold">{b.courseTitle}</p>
 
-                <p className="text-sm text-gray-600">ราคา: {b.price} บาท</p>
+                  <p className="text-sm text-gray-600">
+                    เวลา: {new Date(b.startTime).toLocaleString()} -{" "}
+                    {new Date(b.endTime).toLocaleString()}
+                  </p>
 
-                <p className="text-sm mt-2">
-                  สถานะ: <span className={st.color}>{st.text}</span>
-                </p>
+                  <p className="text-sm text-gray-600">ราคา: {b.price} บาท</p>
 
-                <p className="text-xs text-gray-400 mt-1">
-                  Booking: {b.bookingId}
-                </p>
+                  <p className="text-sm mt-2">
+                    สถานะ: <span className={st.color}>{st.text}</span>
+                  </p>
 
-                {b.bookingStatus === "waiting_payment" &&
-                  b.paymentStatus !== "slip_uploaded" && (
-                    <button
-                      className="mt-2 text-blue-600 hover:underline text-sm"
-                      onClick={() =>
-                        router.push(`/home/student/payment/${b.bookingId}`)
-                      }
-                    >
-                      {b.paymentStatus === "reject"
-                        ? "⚠️ สลิปไม่ผ่าน — อัปโหลดใหม่"
-                        : "ไปชำระเงิน"}
-                    </button>
-                  )}
+                  <p className="text-xs text-gray-400 mt-1">
+                    Booking: {b.bookingId}
+                  </p>
+
+                  {b.bookingStatus === "waiting_payment" &&
+                    b.paymentStatus !== "slip_uploaded" && (
+                      <button
+                        className="mt-2 text-blue-600 hover:underline text-sm"
+                        onClick={() => setPaymentBookingId(b.bookingId)}
+                      >
+                        {b.paymentStatus === "reject"
+                          ? "⚠️ สลิปไม่ผ่าน — อัปโหลดใหม่"
+                          : "ไปชำระเงิน"}
+                      </button>
+                    )}
+                </div>
+
+                {canCancel && (
+                  <button
+                    className="text-sm text-red-500 border border-red-400 rounded-lg px-3 py-1 hover:bg-red-50 transition shrink-0 self-center ml-4"
+                    onClick={() => setCancelBookingId(b.bookingId)}
+                  >
+                    ยกเลิกการจอง
+                  </button>
+                )}
+
               </div>
             );
           })}
 
         </div>
       </div>
+
+      {cancelBookingId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-96 shadow-xl">
+            <h3 className="text-lg font-bold mb-2 text-gray-800">ยืนยันการยกเลิก</h3>
+            <p className="text-sm text-gray-600 mb-5">
+              หากทำการยกเลิกการจอง <span className="font-semibold text-red-500">จะไม่สามารถรับเงินคืนได้</span> ยืนยันที่จะยกเลิกการจองหรือไม่?
+            </p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-sm"
+                onClick={() => setCancelBookingId(null)}
+                disabled={cancelling}
+              >
+                ยกเลิก
+              </button>
+              <button
+                className="flex-1 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition text-sm font-semibold disabled:opacity-60"
+                onClick={handleConfirmCancel}
+                disabled={cancelling}
+              >
+                {cancelling ? "กำลังยกเลิก..." : "ยืนยัน"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {paymentBookingId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-96 shadow-xl">
+            <h3 className="text-lg font-bold mb-2 text-gray-800">ยืนยันการชำระเงิน</h3>
+            <p className="text-sm text-gray-600 mb-5">
+              หากทำการชำระเงินแล้ว <span className="font-semibold text-red-500">จะไม่สามารถรับเงินคืนได้</span> ยืนยันที่จะไปชำระเงินหรือไม่?
+            </p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-sm"
+                onClick={() => setPaymentBookingId(null)}
+              >
+                ยกเลิก
+              </button>
+              <button
+                className="flex-1 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition text-sm font-semibold"
+                onClick={handleConfirmPayment}
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
