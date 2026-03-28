@@ -1,20 +1,24 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Tutor from "@/models/Tutor";
-import { cookies } from "next/headers";
 
-export async function GET() {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await connectDB();
 
-    const cookieStore = await cookies();
-    const userId = cookieStore.get("userId")?.value;
+    const { id } = await params;
 
-    if (!userId) {
-      return NextResponse.json({ message: "Not logged in" }, { status: 401 });
+    if (!id) {
+      return NextResponse.json(
+        { message: "tutorId is required" },
+        { status: 400 }
+      );
     }
 
-    const tutor = await Tutor.findOne({ userId });
+    const tutor = await Tutor.findOne({ userId: id });
 
     if (!tutor) {
       return NextResponse.json({

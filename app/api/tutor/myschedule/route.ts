@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
           price: course?.price,
           status: booking.bookingStatus,
           createdAt: booking.createdAt,
+          classLink: course?.classLink || "",
         };
       })
     );

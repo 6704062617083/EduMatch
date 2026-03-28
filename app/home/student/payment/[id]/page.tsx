@@ -32,7 +32,28 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-[#fdf6ee] flex flex-col items-center justify-center px-5 py-10 font-sans">
-      <h1 className="text-2xl text-[#1a1a2e] mb-6">ชำระเงิน</h1>
+      <div className="w-full max-w-[380px] mb-4">
+        <button
+          onClick={() => router.push("/home/student/mybooking")}
+          className="flex items-center gap-2 text-[#f57c00] font-semibold text-sm hover:opacity-75 transition-opacity"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+          ย้อนกลับ
+        </button>
+      </div>
 
       <div className="relative w-full max-w-[380px]">
         <img
@@ -44,13 +65,7 @@ export default function Page() {
           <img
             src={qr}
             alt="QR Code"
-            className="absolute"
-            style={{
-              left: "22.5%",
-              top: "30%",
-              width: "55%",
-              height: "auto",
-            }}
+            className="absolute left-[22.5%] top-[30%] w-[55%] h-auto"
           />
         )}
       </div>
@@ -67,7 +82,7 @@ export default function Page() {
         />
         <button
           onClick={handleUpload}
-          className="w-full py-3 bg-[#f57c00] text-white border-none rounded-lg font-bold text-base cursor-pointer"
+          className="w-full py-3 bg-[#f57c00] text-white rounded-lg font-bold text-base cursor-pointer hover:bg-[#e65100] transition-colors"
         >
           ส่งสลิป
         </button>

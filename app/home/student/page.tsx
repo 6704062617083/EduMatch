@@ -33,6 +33,8 @@ export default function StudentHome() {
   const [tutorProfile, setTutorProfile] = useState<any>(null);
   const [tutorProfileLoading, setTutorProfileLoading] = useState(false);
 
+  const [tutorRatings, setTutorRatings] = useState<Record<string, number>>({});
+
   const router = useRouter();
 
   useEffect(() => {
@@ -57,6 +59,18 @@ export default function StudentHome() {
       const data = await res.json();
       setCourses(data);
       setFilteredCourses(data);
+
+      const ratings: Record<string, number> = {};
+      await Promise.all(
+        data.map(async (course: any) => {
+          const tutorId = course.tutor?._id;
+          if (!tutorId || ratings[tutorId] !== undefined) return;
+          const r = await fetch(`/api/tutor/rating/${tutorId}`);
+          const d = await r.json();
+          ratings[tutorId] = d.avgRating ?? 0;
+        })
+      );
+      setTutorRatings(ratings);
     } catch (error) {
       console.error(error);
     }
@@ -64,7 +78,6 @@ export default function StudentHome() {
 
   function handleSearch(keyword: string) {
     const lower = keyword.toLowerCase();
-
     const filtered = courses.filter((course: any) => {
       const title = course.title?.toLowerCase() || "";
       const tutor = (course.tutor?.name + " " + course.tutor?.surname)?.toLowerCase() || "";
@@ -77,7 +90,6 @@ export default function StudentHome() {
 
       return matchSearch && matchTag && matchMinPrice && matchMaxPrice;
     });
-
     setFilteredCourses(filtered);
   }
 
@@ -149,55 +161,35 @@ export default function StudentHome() {
   }
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{
-        padding: "20px 40px",
-        fontSize: "22px",
-        fontWeight: "bold",
-        borderBottom: "1px solid #ddd",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}>
+    <div className="h-screen flex flex-col">
+      <div className="px-10 py-5 text-2xl font-bold border-b border-gray-200 flex justify-between items-center">
         <Link href="/home/student">
           <Image
             src="/Edu_icon.png"
             alt="Edumatch Logo"
             width={140}
             height={40}
-            style={{ cursor: "pointer", objectFit: "contain" }}
+            className="cursor-pointer object-contain"
           />
         </Link>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "16px", fontWeight: "normal" }}>
+        <div className="flex items-center gap-3">
+          <span className="text-base font-normal">
             {user?.name} {user?.surname}
           </span>
 
-          <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div className="relative flex flex-col items-center">
             <div
               onClick={() => setShowMenu(!showMenu)}
-              style={{
-                width: "40px", height: "40px",
-                borderRadius: "50%", border: "2px solid black", cursor: "pointer",
-              }}
+              className="w-10 h-10 rounded-full border-2 border-black cursor-pointer"
             />
-            <div style={{ fontSize: "12px", marginTop: "4px" }}>{user?.role}</div>
+            <div className="text-xs mt-1">{user?.role}</div>
 
             {showMenu && (
-              <div style={{
-                position: "absolute", top: "60px", right: "0",
-                background: "white", border: "1px solid #ccc",
-                borderRadius: "8px", padding: "10px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              }}>
+              <div className="absolute top-14 right-0 bg-white border border-gray-300 rounded-lg p-2 shadow-md">
                 <button
                   onClick={handleLogout}
-                  style={{
-                    background: "#ff4d4f", color: "white", border: "none",
-                    padding: "6px 10px", borderRadius: "6px",
-                    cursor: "pointer", fontSize: "12px",
-                  }}
+                  className="bg-red-500 text-white border-none px-3 py-1.5 rounded-md cursor-pointer text-xs"
                 >
                   Logout
                 </button>
@@ -207,109 +199,113 @@ export default function StudentHome() {
         </div>
       </div>
 
-      <div style={{ padding: "40px" }}>
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+      <div className="p-10">
+        <div className="flex gap-2 mb-5">
           <input
             type="text"
             placeholder="ค้นหาคอร์ส / ชื่อติวเตอร์ / วิชา"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+            className="flex-1 px-3 py-2.5 rounded-md border border-gray-300"
           />
           <button
             onClick={() => setShowFilter(true)}
-            style={{ padding: "10px 16px", borderRadius: "6px", border: "1px solid #ccc", cursor: "pointer", background: "white" }}
+            className="px-4 py-2.5 rounded-md border border-gray-300 cursor-pointer bg-white"
           >
             Filter
           </button>
           <button
             onClick={() => router.push("/home/student/mybooking")}
-            style={{ padding: "10px 16px", borderRadius: "6px", border: "1px solid #ccc", cursor: "pointer", background: "white" }}
+            className="px-4 py-2.5 rounded-md border border-gray-300 cursor-pointer bg-white"
           >
             My Booking
           </button>
           <button
             onClick={() => router.push("/home/student/myschedule")}
-            style={{ padding: "10px 16px", borderRadius: "6px", border: "1px solid #ccc", cursor: "pointer", background: "white" }}
+            className="px-4 py-2.5 rounded-md border border-gray-300 cursor-pointer bg-white"
           >
             My Schedule
           </button>
         </div>
 
-        <h2 style={{ marginBottom: "20px" }}>Available Courses</h2>
+        <h2 className="mb-5 text-xl font-semibold">Available Courses</h2>
 
         {filteredCourses.length === 0 && <p>No courses available</p>}
 
         {filteredCourses.map((course: any) => (
-          <div 
-            key={course._id} 
+          <div
+            key={course._id}
             className="bg-white p-6 rounded-xl border border-gray-200 mb-4 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
-            <h3 style={{ fontSize: "22px", fontWeight: "bold", marginBottom: "8px" }}>{course.title}</h3>
-            <p>Tutor: {course.tutor?.name} {course.tutor?.surname}</p>
-            <p style={{ fontWeight: "bold" }}>ราคา: {course.price?.toLocaleString()} บาท</p>
+            <h3 className="text-2xl font-bold mb-2">{course.title}</h3>
+            <p>
+              Tutor: {course.tutor?.name} {course.tutor?.surname}
+              {" "}
+              <span className="text-yellow-500 font-bold">
+                คะแนน(★ {tutorRatings[course.tutor?._id] !== undefined
+                  ? tutorRatings[course.tutor?._id] > 0
+                    ? tutorRatings[course.tutor?._id].toFixed(1)
+                    : "0"
+                  : "0"})
+              </span>
+            </p>
+            <p className="font-bold">ราคา: {course.price?.toLocaleString()} บาท</p>
 
-            <div style={{ marginBottom: "10px", marginTop: "10px" }}>
+            <div className="mb-2 mt-2">
               {course.tags?.map((tag: string) => (
-                <span key={tag} style={{
-                  background: "#e6f0ff", padding: "4px 10px",
-                  borderRadius: "20px", fontSize: "12px", marginRight: "5px",
-                }}>
+                <span key={tag} className="bg-blue-50 px-3 py-1 rounded-full text-xs mr-1">
                   {tag}
                 </span>
               ))}
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-              <button style={detailBtn} onClick={() => openDetail(course)}>รายละเอียด</button>
-              <button style={profileBtn} onClick={() => openTutorProfile(course.tutor?._id)}>ติวเตอร์โปรไฟล์</button>
-              <button style={bookBtn} onClick={() => openBookingConfirm(course)}>จองเรียน</button>
+            <div className="flex gap-2 mt-4">
+              <button className="px-4 py-2 bg-gray-600 text-white border-none rounded-md cursor-pointer" onClick={() => openDetail(course)}>รายละเอียด</button>
+              <button className="px-4 py-2 bg-green-600 text-white border-none rounded-md cursor-pointer" onClick={() => openTutorProfile(course.tutor?._id)}>ติวเตอร์โปรไฟล์</button>
+              <button className="px-5 py-2 bg-indigo-700 text-white border-none rounded-md cursor-pointer" onClick={() => openBookingConfirm(course)}>จองเรียน</button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Booking Confirm Popup */}
       {showBookingConfirm && selectedBookingCourse && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <div style={{ background: "white", padding: "25px", borderRadius: "12px", width: "500px", maxWidth: "90%" }}>
-            <p style={{ fontWeight: "bold" }}>ยืนยันการจอง</p>
-            <p style={{ marginTop: "10px" }}>{selectedBookingCourse.title}</p>
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-[500px] max-w-[90%]">
+            <p className="font-bold">ยืนยันการจอง</p>
+            <p className="mt-2">{selectedBookingCourse.title}</p>
             <p>{new Date(selectedBookingCourse.startTime).toLocaleString()} - {new Date(selectedBookingCourse.endTime).toLocaleString()}</p>
-            <p style={{ marginTop: "10px" }}>ราคา {selectedBookingCourse.price?.toLocaleString()} บาท</p>
+            <p className="mt-2">ราคา {selectedBookingCourse.price?.toLocaleString()} บาท</p>
 
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <button onClick={() => setShowBookingConfirm(false)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "white" }}>ยกเลิก</button>
-              <button onClick={() => handleBooking(selectedBookingCourse._id)} style={{ padding: "8px 12px", borderRadius: "6px", border: "none", background: "#2a0edd", color: "white" }}>ยืนยันจอง</button>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setShowBookingConfirm(false)} className="px-3 py-2 rounded-md border border-gray-300 bg-white">ยกเลิก</button>
+              <button onClick={() => handleBooking(selectedBookingCourse._id)} className="px-3 py-2 rounded-md border-none bg-indigo-700 text-white">ยืนยันจอง</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Detail Popup */}
       {showDetail && selectedCourse && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <div style={{ background: "white", padding: "25px", borderRadius: "12px", width: "500px", maxWidth: "90%" }}>
-            <p style={{ fontWeight: "bold" }}>ชื่อคอร์ส</p>
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-[500px] max-w-[90%]">
+            <p className="font-bold">ชื่อคอร์ส</p>
             <p>{selectedCourse.title}</p>
-            <p style={{ fontWeight: "bold", marginTop: "10px" }}>ติวเตอร์</p>
+            <p className="font-bold mt-2">ติวเตอร์</p>
             <p>{selectedCourse.tutor?.name} {selectedCourse.tutor?.surname}</p>
-            <p style={{ fontWeight: "bold", marginTop: "10px" }}>ราคา</p>
+            <p className="font-bold mt-2">ราคา</p>
             <p>{selectedCourse.price?.toLocaleString()} บาท</p>
-            <p style={{ fontWeight: "bold", marginTop: "10px" }}>เวลาเรียน</p>
+            <p className="font-bold mt-2">เวลาเรียน</p>
             <p>{new Date(selectedCourse.startTime).toLocaleString()} - {new Date(selectedCourse.endTime).toLocaleString()}</p>
-            <p style={{ fontWeight: "bold", marginTop: "10px" }}>รายละเอียดคอร์ส</p>
-            <p style={{ lineHeight: "1.5" }}>{selectedCourse.description}</p>
-            <button onClick={() => setShowDetail(false)} style={{ marginTop: "20px", padding: "8px 16px", background: "#ff6a00", color: "white", border: "none", borderRadius: "6px" }}>ปิด</button>
+            <p className="font-bold mt-2">รายละเอียดคอร์ส</p>
+            <p className="leading-relaxed">{selectedCourse.description}</p>
+            <button onClick={() => setShowDetail(false)} className="mt-5 px-4 py-2 bg-orange-500 text-white border-none rounded-md">ปิด</button>
           </div>
         </div>
       )}
 
-      {/* Tutor Profile Popup */}
       {showTutorProfile && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <div style={{ background: "white", padding: "25px", borderRadius: "12px", width: "500px", maxWidth: "90%" }}>
-            <p style={{ fontWeight: "bold", fontSize: "18px", marginBottom: "15px" }}>โปรไฟล์ติวเตอร์</p>
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-[500px] max-w-[90%]">
+            <p className="font-bold text-lg mb-4">โปรไฟล์ติวเตอร์</p>
 
             {tutorProfileLoading ? (
               <p>กำลังโหลด...</p>
@@ -317,35 +313,28 @@ export default function StudentHome() {
               <p>ไม่พบข้อมูล</p>
             ) : (
               <>
-                <p style={{ fontWeight: "bold" }}>ชื่อ-นามสกุล</p>
+                <p className="font-bold">ชื่อ-นามสกุล</p>
                 <p>{tutorProfile.userId?.name} {tutorProfile.userId?.surname}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>อีเมล</p>
+                <p className="font-bold mt-2">อีเมล</p>
                 <p>{tutorProfile.userId?.email}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>เบอร์โทรศัพท์</p>
+                <p className="font-bold mt-2">เบอร์โทรศัพท์</p>
                 <p>{tutorProfile.userId?.phone}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>ระดับการศึกษา</p>
+                <p className="font-bold mt-2">ระดับการศึกษา</p>
                 <p>{tutorProfile.educationLevel || "-"}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>สถาบัน</p>
+                <p className="font-bold mt-2">สถาบัน</p>
                 <p>{tutorProfile.university || "-"}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>คณะ / สาขา</p>
+                <p className="font-bold mt-2">คณะ / สาขา</p>
                 <p>{tutorProfile.faculty || "-"} / {tutorProfile.major || "-"}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>GPA</p>
+                <p className="font-bold mt-2">GPA</p>
                 <p>{tutorProfile.gpa || "-"}</p>
-
-                <p style={{ fontWeight: "bold", marginTop: "10px" }}>ประสบการณ์สอน</p>
+                <p className="font-bold mt-2">ประสบการณ์สอน</p>
                 <p>{tutorProfile.tutorExp ? `${tutorProfile.tutorExp} ปี` : "-"}</p>
               </>
             )}
 
             <button
               onClick={() => { setShowTutorProfile(false); setTutorProfile(null); }}
-              style={{ marginTop: "20px", padding: "8px 16px", background: "#ff6a00", color: "white", border: "none", borderRadius: "6px" }}
+              className="mt-5 px-4 py-2 bg-orange-500 text-white border-none rounded-md"
             >
               ปิด
             </button>
@@ -353,16 +342,15 @@ export default function StudentHome() {
         </div>
       )}
 
-      {/* Filter Popup */}
       {showFilter && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <div style={{ background: "white", padding: "25px", borderRadius: "12px", width: "500px", maxWidth: "90%" }}>
-            <h3 style={{ marginBottom: "15px" }}>Filter</h3>
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-[500px] max-w-[90%]">
+            <h3 className="mb-4 text-lg font-semibold">Filter</h3>
 
             <select
               value={tagFilter}
               onChange={(e) => setTagFilter(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginBottom: "15px", borderRadius: "6px", border: "1px solid #ccc" }}
+              className="w-full p-2 mb-4 rounded-md border border-gray-300"
             >
               <option value="">ทุกวิชา</option>
               {SUBJECT_TAGS.map((tag) => (
@@ -370,14 +358,14 @@ export default function StudentHome() {
               ))}
             </select>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-              <input type="number" placeholder="Min price" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} style={{ flex: 1, padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }} />
-              <input type="number" placeholder="Max price" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} style={{ flex: 1, padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            <div className="flex gap-2 mb-5">
+              <input type="number" placeholder="Min price" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} className="flex-1 p-2 rounded-md border border-gray-300" />
+              <input type="number" placeholder="Max price" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="flex-1 p-2 rounded-md border border-gray-300" />
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-              <button onClick={() => setShowFilter(false)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #ccc", background: "white" }}>Cancel</button>
-              <button onClick={() => setShowFilter(false)} style={{ padding: "8px 12px", borderRadius: "6px", border: "none", background: "#ff6a00", color: "white" }}>Apply</button>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowFilter(false)} className="px-3 py-2 rounded-md border border-gray-300 bg-white">Cancel</button>
+              <button onClick={() => setShowFilter(false)} className="px-3 py-2 rounded-md border-none bg-orange-500 text-white">Apply</button>
             </div>
           </div>
         </div>
@@ -385,30 +373,3 @@ export default function StudentHome() {
     </div>
   );
 }
-
-const bookBtn = { 
-  padding: "8px 20px", 
-  background: "#2a0edd", 
-  color: "white", 
-  border: "none", 
-  borderRadius: "6px", 
-  cursor: "pointer" 
-};
-
-const detailBtn = { 
-  padding: "8px 16px", 
-  background: "#555", 
-  color: "white", 
-  border: "none", 
-  borderRadius: "6px", 
-  cursor: "pointer" 
-};
-
-const profileBtn = { 
-  padding: "8px 16px", 
-  background: "#00a86b", 
-  color: "white", 
-  border: "none", 
-  borderRadius: "6px", 
-  cursor: "pointer" 
-};

@@ -13,6 +13,7 @@ interface Booking {
   price: number;
   status: "waiting_payment" | "confirmed" | "completed";
   createdAt: string;
+  classLink?: string;
 }
 
 const MONTH_TH = [
@@ -133,8 +134,18 @@ function Calendar({
 
 function BookingCard({ b }: { b: Booking }) {
   const st = statusLabel[b.status] ?? { text: b.status, cls: "bg-gray-100 text-gray-600" };
+  const now = new Date();
+  const canJoin = 
+    b.startTime &&
+    new Date(b.startTime).getTime() - 10 * 60 * 1000 <= now.getTime();
+  const start = b.startTime ? new Date(b.startTime) : null;
+  const diffMs = start ? start.getTime() - now.getTime() : null;
+  const diffHour = diffMs ? Math.floor(diffMs / (1000 * 60 * 60)) : null;
+  const diffMin = diffMs ? Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)) : null;
+  const finished = isFinished(b);
+
   return (
-    <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-center mb-2 hover:border-gray-200">
+    <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-start mb-2 hover:border-gray-200">
       <div className="flex-1 min-w-0 pr-3">
         <p className="font-semibold text-gray-900 text-sm truncate">{b.courseTitle || "คอร์ส"}</p>
         <p className="text-xs text-gray-400 mt-0.5">นักเรียน: {b.studentName}</p>
@@ -146,7 +157,26 @@ function BookingCard({ b }: { b: Booking }) {
         <p className="text-xs font-semibold text-indigo-600 mt-0.5">
           ฿{b.price?.toLocaleString() ?? "–"}
         </p>
+
+        {b.classLink && b.status === "confirmed" && !finished && canJoin && (
+          <a
+            href={b.classLink}
+            target="_blank"
+            className="text-xs text-blue-600 underline mt-1 inline-block"
+          >
+            เข้าสอนออนไลน์
+          </a>
+        )}
+
+        {b.classLink && b.status === "confirmed" && !finished && !canJoin && diffMs !== null && diffMs > 0 && (
+          <span className="text-xs text-gray-400 mt-1 inline-block">
+            เข้าสอนได้ในอีก{" "}
+            {diffHour && diffHour > 0 && `${diffHour} ชม. `}
+            {diffMin} นาที
+          </span>
+        )}
       </div>
+
       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.cls}`}>
         {st.text}
       </span>
@@ -271,7 +301,7 @@ export default function TutorMySchedule() {
         {activeList.length === 0 ? (
           tab === "upcoming"
             ? <EmptyState icon="" text="ไม่มีคอร์สที่กำลังมาถึง" />
-            : <EmptyState icon="" text="ยังไม่มีคอร์สที่สอนจบ" />
+            : <EmptyState icon="" text="ไม่มีคอร์สที่สอนจบแล้ว" />
         ) : (
           activeList.map((b) => <BookingCard key={b.bookingId} b={b} />)
         )}

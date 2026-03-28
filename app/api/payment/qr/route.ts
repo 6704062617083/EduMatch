@@ -27,13 +27,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ไม่พบข้อมูลคอร์ส" }, { status: 404 });
   }
 
+  const tutorId = booking.tutorId;
+
   const payment = await Payment.findOneAndUpdate(
     { bookingId: booking._id },
     {
       $setOnInsert: {
         paymentId: "PAY_" + Date.now(),
         amount: course.price,
-        paymentStatus: "waiting_payment"
+        paymentStatus: "waiting_payment",
+        tutorId: booking.tutorId 
       }
     },
     {

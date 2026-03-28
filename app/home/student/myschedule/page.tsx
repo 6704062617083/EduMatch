@@ -248,6 +248,14 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
     : b.paymentStatus === "paid"
     ? "confirmed"
     : b.status;
+  const now = new Date();
+  const canJoin =
+    b.startTime &&
+    new Date(b.startTime).getTime() - 10 * 60 * 1000 <= now.getTime();
+  const start = b.startTime ? new Date(b.startTime) : null;
+  const diffMs = start ? start.getTime() - now.getTime() : null;
+  const diffHour = diffMs ? Math.floor(diffMs / (1000 * 60 * 60)) : null;
+  const diffMin = diffMs ? Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)) : null;
   const st = statusLabel[displayStatus] ?? { text: displayStatus, cls: "bg-gray-100 text-gray-600" };
 
   return (
@@ -259,8 +267,15 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
             {b.startTime ? `${formatDate(b.startTime)} · ${formatTime(b.startTime)}–${formatTime(b.endTime)}` : "ยังไม่ระบุวันเวลา"}
           </p>
           <p className="text-xs font-semibold text-indigo-600 mt-0.5">฿{b.price?.toLocaleString() ?? "–"}</p>
-          {!finished && b.classLink && (
+          {!finished && b.classLink && canJoin && (
             <a href={b.classLink} target="_blank" className="text-xs text-blue-600 underline mt-0.5 inline-block">เข้าเรียนออนไลน์</a>
+          )}
+          {!finished && b.classLink && !canJoin && diffMin !== null && diffMin > 0 && (
+            <span className="text-xs text-gray-400 mt-0.5 inline-block">
+              เข้าเรียนได้ในอีก{" "}
+              {diffHour && diffHour > 0 && `${diffHour} ชม. `}
+              {diffMin} นาที
+            </span>
           )}
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
