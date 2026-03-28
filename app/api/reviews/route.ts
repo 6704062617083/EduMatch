@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       comment: comment ?? ""
     });
 
-    await Booking.findByIdAndUpdate(bookingId, { bookingStatus: "completed" });
+    await Booking.findOneAndUpdate({ bookingId }, { bookingStatus: "completed" });
 
     const allReviews = await Review.find({ tutorId });
     const totalReviews = allReviews.length;
