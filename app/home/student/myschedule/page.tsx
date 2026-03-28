@@ -62,7 +62,7 @@ function isFinished(b: Booking): boolean {
 async function patchCompletedIfNeeded(b: Booking) {
   if (b.status !== "completed" && isFinished(b)) {
     try {
-      await fetch(`/api/studentbooking/${b._id}`, {
+      await fetch(`/api/studentbooking/${b.bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "completed" }),
@@ -243,7 +243,11 @@ function Calendar({
 
 function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b: Booking) => void }) {
   const finished = isFinished(b);
-  const displayStatus = finished ? "completed" : b.status;
+  const displayStatus = finished
+    ? "completed"
+    : b.paymentStatus === "paid"
+    ? "confirmed"
+    : b.status;
   const st = statusLabel[displayStatus] ?? { text: displayStatus, cls: "bg-gray-100 text-gray-600" };
 
   return (
@@ -261,7 +265,7 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.cls}`}>{st.text}</span>
-          {!finished && b.status === "confirmed" && onCompleteClick && (
+          {!finished && (b.status === "confirmed" || b.paymentStatus === "paid") && onCompleteClick && (
             <button
               onClick={() => onCompleteClick(b)}
               className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 active:scale-95 transition-all"
@@ -320,8 +324,17 @@ export default function StudentMySchedule() {
         setStudentId(user._id);
 
         const r = await fetch(`/api/studentbooking?studentId=${user._id}`);
-        const data: Booking[] = await r.json();
-        const list = Array.isArray(data) ? data : [];
+        const data = await r.json();
+        const list: Booking[] = Array.isArray(data)
+          ? data.map((b: any) => ({
+              ...b,
+              status: b.bookingStatus, 
+              courseTitle: b.courseTitle || "คอร์ส",
+              startTime: b.startTime || null,
+              endTime: b.endTime || null,
+              classLink: b.classLink || "",
+            }))
+          : [];
 
         setBookings(list);
         list.forEach((b) => patchCompletedIfNeeded(b));
@@ -351,7 +364,7 @@ export default function StudentMySchedule() {
     if (!popupBooking) return;
 
     const payload = {
-      bookingId: popupBooking._id,
+      bookingId: popupBooking.bookingId,
       tutorId: popupBooking.tutorId,
       studentId,
       rating,

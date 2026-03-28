@@ -33,7 +33,7 @@ interface TutorRequest {
 interface PaymentRequest {
   _id: string;
   bookingId: string;
-  paymentStatus: "pending" | "waiting_payment" | "slip_uploaded" | "paid";
+  paymentStatus: "pending" | "waiting_payment" | "slip_uploaded" | "paid" | "reject" | "transferred_to_tutor";
   price: number;
   slipUrl?: string;
   studentId?: { name: string; surname: string };
@@ -44,6 +44,7 @@ interface PaymentRequest {
     accountNumber?: string;
     bankName?: string;
   };
+  tutorQr?: string;
 }
 
 const TUTOR_STATUS: Record<string, { label: string; color: string }> = {
@@ -56,7 +57,9 @@ const PAY_STATUS: Record<string, { label: string; color: string }> = {
   pending: { label: "รอชำระเงิน", color: "bg-gray-100 text-gray-600" },
   waiting_payment: { label: "รอชำระเงิน", color: "bg-gray-100 text-gray-600" },
   slip_uploaded: { label: "รอตรวจสลิป", color: "bg-yellow-100 text-yellow-700" },
-  paid: { label: "ยืนยันแล้ว", color: "bg-green-100 text-green-700" },
+  paid: { label: "เงินเข้าแล้ว", color: "bg-blue-100 text-blue-700" },
+  reject: { label: "สลิปไม่ผ่าน", color: "bg-red-100 text-red-700" },
+  transferred_to_tutor: { label: "โอนให้ติวเตอร์", color: "bg-green-100 text-green-700" },
 };
 
 export default function AdminHome() {
@@ -102,9 +105,9 @@ export default function AdminHome() {
   };
 
   const pendingTutors = tutorData.filter((t) => t.status === "pending");
-  const pendingPayments = payData.filter(
-    (p) => p.paymentStatus === "slip_uploaded"
-  );
+  const pendingPayments = payData.filter((p) => p.paymentStatus === "slip_uploaded");
+  const paidPayments = payData.filter((p) => p.paymentStatus === "paid");
+  const transferredPayments = payData.filter((p) => p.paymentStatus === "transferred_to_tutor");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -157,14 +160,9 @@ export default function AdminHome() {
               const isOpen = expandedTutor === item._id;
 
               return (
-                <div
-                  key={item._id}
-                  className="border rounded-xl p-5 mb-4 shadow-sm"
-                >
+                <div key={item._id} className="border rounded-xl p-5 mb-4 shadow-sm">
                   <div
-                    onClick={() =>
-                      setExpandedTutor(isOpen ? null : item._id)
-                    }
+                    onClick={() => setExpandedTutor(isOpen ? null : item._id)}
                     className="flex justify-between cursor-pointer"
                   >
                     <div>
@@ -176,9 +174,7 @@ export default function AdminHome() {
                       </p>
                     </div>
 
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs ${st.color}`}
-                    >
+                    <span className={`px-3 py-1 rounded-full text-xs ${st.color}`}>
                       {st.label}
                     </span>
                   </div>
@@ -186,18 +182,11 @@ export default function AdminHome() {
                   {isOpen && (
                     <div className="mt-4 text-sm space-y-4">
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
-                          ข้อมูลส่วนบุคคล
-                        </h3>
+                        <h3 className="font-semibold text-gray-700 mb-2">ข้อมูลส่วนบุคคล</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
                           <Field label="อีเมล" value={item.userId?.email} />
                           <Field label="เลขบัตรประชาชน" value={item.nationalId} />
-                          <Field
-                            label="ชื่อ-สกุล (EN)"
-                            value={`${item.firstNameEN ?? ""} ${
-                              item.lastNameEN ?? ""
-                            }`}
-                          />
+                          <Field label="ชื่อ-สกุล (EN)" value={`${item.firstNameEN ?? ""} ${item.lastNameEN ?? ""}`} />
                           <Field label="จังหวัด" value={item.province} />
                           <Field label="เชื้อชาติ" value={item.ethnicity} />
                           <Field label="สัญชาติ" value={item.nationality} />
@@ -206,76 +195,35 @@ export default function AdminHome() {
                             label="วันเกิด"
                             value={
                               item.birthDate
-                                ? new Date(item.birthDate).toLocaleDateString(
-                                    "th-TH"
-                                  )
+                                ? new Date(item.birthDate).toLocaleDateString("th-TH")
                                 : "-"
                             }
                           />
-                          <Field
-                            label="ความถนัดทางวิชาการ"
-                            value={item.academicStrength}
-                          />
+                          <Field label="ความถนัดทางวิชาการ" value={item.academicStrength} />
                         </div>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
-                          การศึกษา
-                        </h3>
+                        <h3 className="font-semibold text-gray-700 mb-2">การศึกษา</h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
-                          <Field
-                            label="ระดับการศึกษา"
-                            value={item.educationLevel}
-                          />
+                          <Field label="ระดับการศึกษา" value={item.educationLevel} />
                           <Field label="สถาบัน" value={item.university} />
                           <Field label="คณะ" value={item.faculty} />
                           <Field label="สาขา" value={item.major} />
                           <Field label="GPA" value={item.gpa} />
-                          <Field
-                            label="ประสบการณ์สอน"
-                            value={
-                              item.tutorExp ? `${item.tutorExp} ปี` : "-"
-                            }
-                          />
+                          <Field label="ประสบการณ์สอน" value={item.tutorExp ? `${item.tutorExp} ปี` : "-"} />
                         </div>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
-                          เอกสาร
-                        </h3>
+                        <h3 className="font-semibold text-gray-700 mb-2">เอกสาร</h3>
                         <div className="flex flex-wrap gap-2">
-                          {item.idCardUrl && (
-                            <a href={item.idCardUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
-                              บัตรประชาชน
-                            </a>
-                          )}
-                          {item.certificateUrl && (
-                            <a href={item.certificateUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
-                              ประกาศนียบัตร
-                            </a>
-                          )}
-                          {item.transcriptUrl && (
-                            <a href={item.transcriptUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
-                              Transcript
-                            </a>
-                          )}
-                          {item.resumeUrl && (
-                            <a href={item.resumeUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
-                              Resume
-                            </a>
-                          )}
-                          {item.tutorPhotoUrl && (
-                            <a href={item.tutorPhotoUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
-                              รูปติวเตอร์
-                            </a>
-                          )}
-                          {item.paymentQrUrl && (
-                            <a href={item.paymentQrUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">
-                              QR รับเงิน
-                            </a>
-                          )}
+                          {item.idCardUrl && <a href={item.idCardUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">บัตรประชาชน</a>}
+                          {item.certificateUrl && <a href={item.certificateUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">ประกาศนียบัตร</a>}
+                          {item.transcriptUrl && <a href={item.transcriptUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">Transcript</a>}
+                          {item.resumeUrl && <a href={item.resumeUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">Resume</a>}
+                          {item.tutorPhotoUrl && <a href={item.tutorPhotoUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">รูปติวเตอร์</a>}
+                          {item.paymentQrUrl && <a href={item.paymentQrUrl} target="_blank" className="bg-blue-50 text-blue-600 border border-blue-300 px-3 py-1 rounded text-sm">QR รับเงิน</a>}
                         </div>
                       </div>
 
@@ -287,20 +235,10 @@ export default function AdminHome() {
 
                       {item.status === "pending" && (
                         <div className="flex gap-2">
-                          <button
-                            onClick={() =>
-                              updateTutorStatus(item._id, "approved")
-                            }
-                            className="bg-green-600 text-white px-4 py-2 rounded"
-                          >
+                          <button onClick={() => updateTutorStatus(item._id, "approved")} className="bg-green-600 text-white px-4 py-2 rounded">
                             Approve
                           </button>
-                          <button
-                            onClick={() =>
-                              updateTutorStatus(item._id, "rejected")
-                            }
-                            className="bg-red-500 text-white px-4 py-2 rounded"
-                          >
+                          <button onClick={() => updateTutorStatus(item._id, "rejected")} className="bg-red-500 text-white px-4 py-2 rounded">
                             Reject
                           </button>
                         </div>
@@ -321,109 +259,106 @@ export default function AdminHome() {
               <p className="text-gray-400">ยังไม่มีสลิป</p>
             )}
 
-            {payData.map((item) => {
+            {[...pendingPayments, ...paidPayments].map((item) => {
               const st = PAY_STATUS[item.paymentStatus];
               const isOpen = expandedPay === item._id;
 
               return (
                 <div key={item._id} className="border rounded-xl p-5 mb-4">
                   <div
-                    onClick={() =>
-                      setExpandedPay(isOpen ? null : item._id)
-                    }
+                    onClick={() => setExpandedPay(isOpen ? null : item._id)}
                     className="flex justify-between cursor-pointer"
                   >
                     <div>
                       <h3 className="font-bold">
                         {item.studentId?.name} {item.studentId?.surname}
                       </h3>
-                      <p className="text-sm text-gray-500">
-                        {item.courseId?.title}
-                      </p>
+                      <p className="text-sm text-gray-500">{item.courseId?.title}</p>
                     </div>
 
-                    <span className={`px-3 py-1 rounded ${st.color}`}>
-                      {st.label}
-                    </span>
+                    <span className={`px-3 py-1 rounded ${st.color}`}>{st.label}</span>
                   </div>
 
                   {isOpen && (
                     <div className="mt-3 space-y-2">
                       <p>ราคา: {item.price} บาท</p>
-
-                      <p>
-                        ติวเตอร์: {item.tutorId?.name} {item.tutorId?.surname}
-                      </p>
-
+                      <p>ติวเตอร์: {item.tutorId?.name} {item.tutorId?.surname}</p>
                       <p>คอร์ส: {item.courseId?.title}</p>
 
-                      {item.wallet?.promptpayNumber ? (
-                        <p>PromptPay ของติวเตอร์: {item.wallet.promptpayNumber}</p>
-                      ) : item.wallet?.accountNumber ? (
-                        <p>
-                          บัญชีของติวเตอร์: {item.wallet.accountNumber} ({item.wallet.bankName})
-                        </p>
-                      ) : (
-                        <p className="text-gray-400">ไม่มีข้อมูลการรับเงิน</p>
-                      )}
-
                       {item.slipUrl && (
-                        <img
-                          src={item.slipUrl}
-                          className="w-60 border rounded"
-                        />
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 mb-1">สลิปการโอนเงิน:</p>
+                          <img src={item.slipUrl} className="w-60 border rounded" />
+                        </div>
                       )}
 
                       {item.paymentStatus === "slip_uploaded" && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-1">
                           <button
                             onClick={async () => {
                               await fetch("/api/admin/payment", {
                                 method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  bookingId: item.bookingId,
-                                  action: "approve",
-                                }),
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ bookingId: item.bookingId, action: "approve" }),
                               });
                               setPayData((prev) =>
                                 prev.map((p) =>
-                                  p.bookingId === item.bookingId
-                                    ? { ...p, paymentStatus: "paid" }
-                                    : p
+                                  p.bookingId === item.bookingId ? { ...p, paymentStatus: "paid" } : p
                                 )
                               );
                             }}
                             className="bg-green-600 text-white px-3 py-1 rounded"
                           >
-                            ยืนยัน
+                            ยืนยันเงินเข้า
                           </button>
-
                           <button
                             onClick={async () => {
                               await fetch("/api/admin/payment", {
                                 method: "POST",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  bookingId: item.bookingId,
-                                  action: "reject",
-                                }),
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ bookingId: item.bookingId, action: "reject" }),
                               });
                               setPayData((prev) =>
                                 prev.map((p) =>
-                                  p.bookingId === item.bookingId
-                                    ? { ...p, paymentStatus: "waiting_payment" }
-                                    : p
+                                  p.bookingId === item.bookingId ? { ...p, paymentStatus: "reject" } : p
                                 )
                               );
                             }}
                             className="bg-red-500 text-white px-3 py-1 rounded"
                           >
                             ไม่ผ่าน
+                          </button>
+                        </div>
+                      )}
+
+                      {item.paymentStatus === "paid" && (
+                        <div className="space-y-2 pt-1">
+                          {item.tutorQr && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 mb-1">
+                                QR ของติวเตอร์: {item.tutorId?.name} {item.tutorId?.surname}
+                              </p>
+                              <img src={item.tutorQr} className="w-48 border rounded" />
+                            </div>
+                          )}
+                          <button
+                            onClick={async () => {
+                              await fetch("/api/admin/payment", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ bookingId: item.bookingId, action: "transfer" }),
+                              });
+                              setPayData((prev) =>
+                                prev.map((p) =>
+                                  p.bookingId === item.bookingId
+                                    ? { ...p, paymentStatus: "transferred_to_tutor" }
+                                    : p
+                                )
+                              );
+                            }}
+                            className="bg-blue-600 text-white px-3 py-1 rounded"
+                          >
+                            โอนให้ติวเตอร์แล้ว
                           </button>
                         </div>
                       )}

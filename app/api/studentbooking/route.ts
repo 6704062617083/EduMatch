@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
           endTime: course?.endTime,
           price: payment?.amount || course?.price,
           classLink: course?.classLink || "",
-          status: booking.bookingStatus,
+          bookingStatus: booking.bookingStatus,
           paymentStatus: payment?.paymentStatus || "pending",
           createdAt: booking.createdAt
         };

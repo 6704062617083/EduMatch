@@ -45,16 +45,25 @@ export default function MyBooking() {
   const getStatusLabel = (b: any) => {
     if (b.paymentStatus === "slip_uploaded")
       return { text: "รอแอดมินตรวจสอบ", color: "text-yellow-500" };
-    if (b.paymentStatus === "paid" || b.status === "confirmed")
+
+    if (b.paymentStatus === "paid" || b.bookingStatus === "confirmed")
       return { text: "ยืนยันแล้ว", color: "text-green-500" };
-    if (b.status === "pending")
+
+    if (b.paymentStatus === "reject")
+      return { text: "สลิปไม่ผ่าน", color: "text-red-500" };
+
+    if (b.bookingStatus === "pending")
       return { text: "รอติวเตอร์ตอบรับ", color: "text-yellow-500" };
-    if (b.status === "waiting_payment")
+
+    if (b.bookingStatus === "waiting_payment")
       return { text: "รอชำระเงิน", color: "text-orange-500" };
-    if (b.status === "cancelled")
+
+    if (b.bookingStatus === "cancelled")
       return { text: "ยกเลิกแล้ว", color: "text-red-500" };
-    if (b.status === "completed")
+
+    if (b.bookingStatus === "completed")
       return { text: "เสร็จสิ้น", color: "text-gray-500" };
+
     return { text: "ไม่ทราบสถานะ", color: "text-gray-400" };
   };
 
@@ -103,7 +112,7 @@ export default function MyBooking() {
                   Booking: {b.bookingId}
                 </p>
 
-                {b.status === "waiting_payment" &&
+                {b.bookingStatus === "waiting_payment" &&
                   b.paymentStatus !== "slip_uploaded" && (
                     <button
                       className="mt-2 text-blue-600 hover:underline text-sm"

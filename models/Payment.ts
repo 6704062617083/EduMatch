@@ -10,7 +10,8 @@ const PaymentSchema = new mongoose.Schema({
   bookingId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Booking",
-    required: true
+    required: true,
+    unique: true
   },
 
   amount: {
@@ -20,7 +21,7 @@ const PaymentSchema = new mongoose.Schema({
 
   paymentStatus: {
     type: String,
-    enum: ["pending", "waiting_payment", "slip_uploaded", "paid", "reject"],
+    enum: ["pending", "waiting_payment", "slip_uploaded", "paid", "reject", "transferred_to_tutor"],
     default: "pending"
   },
 

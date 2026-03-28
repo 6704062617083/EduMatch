@@ -2,13 +2,14 @@ import { connectDB } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import Payment from "@/models/Payment";
 import TutorWallet from "@/models/TutorWallet";
+import VerificationDocument from "@/models/VerificationDocument";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   await connectDB();
 
   const payments = await Payment.find({
-    paymentStatus: "slip_uploaded"
+    paymentStatus: { $in: ["slip_uploaded", "paid", "transferred_to_tutor"] }
   })
     .populate({
       path: "bookingId",
@@ -28,10 +29,20 @@ export async function GET() {
     tutorId: { $in: tutorIds }
   }).lean();
 
+  const tutorDocs = await VerificationDocument.find({
+    userId: { $in: tutorIds }
+  }).lean();
+
   const result = payments.map((p: any) => {
     const wallet = wallets.find(
       (w) =>
         w.tutorId.toString() ===
+        p.bookingId?.tutorId?._id?.toString()
+    );
+
+    const doc = tutorDocs.find(
+      (d) =>
+        d.userId.toString() ===
         p.bookingId?.tutorId?._id?.toString()
     );
 
@@ -44,7 +55,8 @@ export async function GET() {
       studentId: p.bookingId?.studentId,
       tutorId: p.bookingId?.tutorId,
       courseId: p.bookingId?.courseId,
-      wallet: wallet || null
+      wallet: wallet || null,
+      tutorQr: doc?.paymentQrUrl || null
     };
   });
 
@@ -86,16 +98,31 @@ export async function POST(req: Request) {
     await payment.save();
 
     booking.bookingStatus = "confirmed";
+    booking.paymentStatus = "paid";
     await booking.save();
   }
 
   if (action === "reject") {
-    payment.paymentStatus = "waiting_payment";
+    payment.paymentStatus = "reject";
     payment.slipUrl = undefined;
     await payment.save();
 
     booking.bookingStatus = "waiting_payment";
+    booking.paymentStatus = "waiting_payment";
+    booking.slipUrl = undefined;
     await booking.save();
+  }
+
+  if (action === "transfer") {
+    if (payment.paymentStatus !== "paid") {
+      return NextResponse.json(
+        { error: "Invalid status" },
+        { status: 400 }
+      );
+    }
+
+    payment.paymentStatus = "transferred_to_tutor";
+    await payment.save();
   }
 
   return NextResponse.json({

@@ -30,15 +30,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
 
-  let payment = await Payment.findOne({ bookingId: booking._id });
+  const payment = await Payment.findOne({ bookingId: booking._id });
 
   if (!payment) {
-    payment = await Payment.create({
-      paymentId: "PAY_" + Date.now(),
-      bookingId: booking._id,
-      amount: 0,
-      paymentStatus: "pending"
-    });
+    return NextResponse.json({ error: "Payment not found" }, { status: 404 });
   }
 
   payment.slipUrl = upload.secure_url;

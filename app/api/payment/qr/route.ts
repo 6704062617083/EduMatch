@@ -27,16 +27,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ไม่พบข้อมูลคอร์ส" }, { status: 404 });
   }
 
-  let payment = await Payment.findOne({ bookingId: booking._id });
-
-  if (!payment) {
-    payment = await Payment.create({
-      paymentId: "PAY_" + Date.now(),
-      bookingId: booking._id,
-      amount: course.price,
-      paymentStatus: "waiting_payment"
-    });
-  }
+  const payment = await Payment.findOneAndUpdate(
+    { bookingId: booking._id },
+    {
+      $setOnInsert: {
+        paymentId: "PAY_" + Date.now(),
+        amount: course.price,
+        paymentStatus: "waiting_payment"
+      }
+    },
+    {
+      new: true,
+      upsert: true
+    }
+  );
 
   const payload = promptpay(process.env.PROMPTPAY_NUMBER!, {
     amount: payment.amount 
