@@ -3,7 +3,10 @@ FROM node:20 AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm install
+
+RUN npm ci
+
+RUN npm rebuild lightningcss
 
 COPY . .
 
