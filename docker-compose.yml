@@ -1,7 +1,9 @@
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        - MONGODB_URI
     ports:
       - "3000:3000"
     env_file:
