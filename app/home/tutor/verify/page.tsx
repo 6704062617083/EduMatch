@@ -13,6 +13,7 @@ export default function TutorVerify() {
     surname: "",
     phone: "",
     idCardNumber: "",
+    nickname: "",
     firstNameEN: "",
     lastNameEN: "",
     province: "",
@@ -86,6 +87,7 @@ export default function TutorVerify() {
         setForm(prev => ({
           ...prev,
           idCardNumber:     doc.nationalId       || "",
+          nickname:         doc.nickname         || "",
           firstNameEN:      doc.firstNameEN      || "",
           lastNameEN:       doc.lastNameEN       || "",
           province:         doc.province         || "",
@@ -118,6 +120,7 @@ export default function TutorVerify() {
     const newErrors: Record<string, string> = {};
     const requiredFields: Record<string, string> = {
       idCardNumber:     "รหัสบัตรประชาชน",
+      nickname:         "ชื่อเล่น",
       firstNameEN:      "ชื่อ (English)",
       lastNameEN:       "นามสกุล (English)",
       province:         "จังหวัดที่อาศัย",
@@ -166,6 +169,7 @@ export default function TutorVerify() {
     try {
       const formData = new FormData();
       formData.append("nationalId",       form.idCardNumber);
+      formData.append("nickname",         form.nickname);
       formData.append("firstNameEN",      form.firstNameEN);
       formData.append("lastNameEN",       form.lastNameEN);
       formData.append("province",         form.province);
@@ -353,8 +357,8 @@ export default function TutorVerify() {
           {lockedInput("นามสกุล", "surname")}
           {freeInput("ชื่อ (English)", "firstNameEN")}
           {freeInput("นามสกุล (English)", "lastNameEN")}
+          {freeInput("ชื่อเล่น", "nickname")}
           {lockedInput("เบอร์โทรศัพท์", "phone")}
-          {freeInput("จังหวัดที่อาศัย", "province")}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -380,6 +384,7 @@ export default function TutorVerify() {
           </div>
 
           {freeInput("ความถนัดทางวิชาการ", "academicStrength")}
+          {freeInput("จังหวัดที่อาศัย", "province")}
         </div>
 
         <h2 className="text-xl font-semibold mb-4">ข้อมูลการศึกษา</h2>

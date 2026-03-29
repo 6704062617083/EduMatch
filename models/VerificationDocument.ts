@@ -12,6 +12,7 @@ const VerificationDocumentSchema = new mongoose.Schema(
     nationalId:       String,
     firstNameEN:      String,
     lastNameEN:       String,
+    nickname:         String,
     province:         String,
     ethnicity:        String,
     nationality:      String,

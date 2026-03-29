@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
 
     const nationalId       = formData.get("nationalId")?.toString()       || null;
+    const nickname         = formData.get("nickname")?.toString()         || null;
     const firstNameEN      = formData.get("firstNameEN")?.toString()      || null;
     const lastNameEN       = formData.get("lastNameEN")?.toString()       || null;
     const province         = formData.get("province")?.toString()         || null;
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
 
     if (paymentQrFile) {
       const uploadRes = await uploadToCloudinary(paymentQrFile);
-      console.log("QR upload result:", uploadRes); // debug
+      console.log("QR upload result:", uploadRes);
       paymentQrUrl = uploadRes.secure_url || uploadRes.url || null;
     }
 
@@ -105,6 +106,7 @@ export async function POST(req: Request) {
     const doc = await VerificationDocument.create({
       userId,
       nationalId,
+      nickname,
       firstNameEN,
       lastNameEN,
       province,

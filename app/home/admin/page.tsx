@@ -8,6 +8,7 @@ interface TutorRequest {
   rejectReason?: string;
   userId?: { name: string; surname: string; email: string };
   nationalId?: string;
+  nickname?: string;
   firstNameEN?: string;
   lastNameEN?: string;
   province?: string;
@@ -186,6 +187,7 @@ export default function AdminHome() {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1">
                           <Field label="อีเมล" value={item.userId?.email} />
                           <Field label="เลขบัตรประชาชน" value={item.nationalId} />
+                          <Field label="ชื่อเล่น" value={item.nickname} />
                           <Field label="ชื่อ-สกุล (EN)" value={`${item.firstNameEN ?? ""} ${item.lastNameEN ?? ""}`} />
                           <Field label="จังหวัด" value={item.province} />
                           <Field label="เชื้อชาติ" value={item.ethnicity} />
