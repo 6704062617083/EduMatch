@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SupportModal from "@/components/SupportModal";
 
 export default function TutorHome() {
   const [showModal, setShowModal] = useState(false);
@@ -11,43 +12,22 @@ export default function TutorHome() {
   const [endTime, setEndTime] = useState("");
   const [link, setLink] = useState("");
   const [price, setPrice] = useState("");
-
   const [courses, setCourses] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [showTagList, setShowTagList] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
-
   const [user, setUser] = useState<any>(null);
-
   const [showMenu, setShowMenu] = useState(false);
-
   const [verifyStatus, setVerifyStatus] = useState<string>("");
-
   const [avgRating, setAvgRating] = useState<number | null>(null);
   const [totalReviews, setTotalReviews] = useState<number>(0);
+  const [showSupport, setShowSupport] = useState(false);
 
   const subjectTags = [
-    "คณิตศาสตร์",
-    "ฟิสิกส์",
-    "เคมี",
-    "ชีววิทยา",
-    "วิทยาศาสตร์ทั่วไป",
-    "ภาษาอังกฤษ",
-    "ภาษาไทย",
-    "ภาษาจีน",
-    "ภาษาญี่ปุ่น",
-    "ภาษาเกาหลี",
-    "สังคมศึกษา",
-    "ประวัติศาสตร์",
-    "ภูมิศาสตร์",
-    "เศรษฐศาสตร์",
-    "โปรแกรมมิ่ง",
-    "วิทยาการคอมพิวเตอร์",
-    "AI",
-    "TGAT1",
-    "TGAT2",
-    "TGAT3",
+    "คณิตศาสตร์", "ฟิสิกส์", "เคมี", "ชีววิทยา", "วิทยาศาสตร์ทั่วไป",
+    "ภาษาอังกฤษ", "ภาษาไทย", "ภาษาจีน", "ภาษาญี่ปุ่น", "ภาษาเกาหลี",
+    "สังคมศึกษา", "ประวัติศาสตร์", "ภูมิศาสตร์", "เศรษฐศาสตร์",
+    "โปรแกรมมิ่ง", "วิทยาการคอมพิวเตอร์", "AI", "TGAT1", "TGAT2", "TGAT3",
   ];
 
   useEffect(() => {
@@ -98,10 +78,8 @@ export default function TutorHome() {
 
   async function handleCreate() {
     if (!user) return;
-
     const method = editingId ? "PUT" : "POST";
     const url = editingId ? `/api/courses/${editingId}` : "/api/courses";
-
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
@@ -116,12 +94,10 @@ export default function TutorHome() {
         tutorId: user._id,
       }),
     });
-
     if (!res.ok) {
       alert("Something went wrong");
       return;
     }
-
     setShowModal(false);
     setCourseName("");
     setDescription("");
@@ -131,40 +107,28 @@ export default function TutorHome() {
     setPrice("");
     setTags([]);
     setEditingId(null);
-
     fetchCourses(user._id);
   }
 
   async function handleDelete(id: string) {
     if (!user) return;
-
-    const res = await fetch(`/api/courses/${id}?tutorId=${user._id}`, {
-      method: "DELETE",
-    });
-
+    const res = await fetch(`/api/courses/${id}?tutorId=${user._id}`, { method: "DELETE" });
     if (!res.ok) {
       alert("Delete failed");
       return;
     }
-
     setCourses((prev) => prev.filter((c) => c._id !== id));
   }
 
   async function handleLogout() {
-    await fetch("/api/logout", {
-      method: "POST",
-    });
-
+    await fetch("/api/logout", { method: "POST" });
     localStorage.removeItem("user");
-
     window.location.href = "/";
   }
 
   function renderStars(rating: number) {
     return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={i < Math.round(rating) ? "text-[#f5a623] text-sm" : "text-gray-300 text-sm"}>
-        ★
-      </span>
+      <span key={i} className={i < Math.round(rating) ? "text-[#f5a623] text-sm" : "text-gray-300 text-sm"}>★</span>
     ));
   }
 
@@ -211,11 +175,7 @@ export default function TutorHome() {
               onClick={() => setShowMenu(!showMenu)}
               className="w-10 h-10 rounded-full border-2 border-black cursor-pointer"
             ></div>
-
-            <div className="text-xs mt-1">
-              {user?.role}
-            </div>
-
+            <div className="text-xs mt-1">{user?.role}</div>
             {showMenu && (
               <div className="absolute top-[60px] right-0 bg-white border border-gray-300 rounded-lg p-2.5 shadow-md">
                 <button
@@ -245,53 +205,25 @@ export default function TutorHome() {
                 borderRadius: "10px",
                 marginBottom: "15px",
                 backgroundColor: "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
               }}
             >
-              <h3 className="text-2xl font-bold mb-[6px] text-gray-900">
-                {course.title}
-              </h3>
-
+              <h3 className="text-2xl font-bold mb-[6px] text-gray-900">{course.title}</h3>
               {course.description && <p>{course.description}</p>}
-
-              <p>
-                Start:{" "}
-                {course.startTime
-                  ? new Date(course.startTime).toLocaleString()
-                  : "-"}
-              </p>
-
-              <p>
-                End:{" "}
-                {course.endTime
-                  ? new Date(course.endTime).toLocaleString()
-                  : "-"}
-              </p>
-
-              <p className="font-bold">
-                ราคา: {course.price?.toLocaleString()} บาท
-              </p>
-
+              <p>Start: {course.startTime ? new Date(course.startTime).toLocaleString() : "-"}</p>
+              <p>End: {course.endTime ? new Date(course.endTime).toLocaleString() : "-"}</p>
+              <p className="font-bold">ราคา: {course.price?.toLocaleString()} บาท</p>
               <div className="mb-2.5">
                 {course.tags?.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="bg-blue-100 px-2.5 py-1 rounded-full text-xs mr-[5px]"
-                  >
-                    {tag}
-                  </span>
+                  <span key={tag} className="bg-blue-100 px-2.5 py-1 rounded-full text-xs mr-[5px]">{tag}</span>
                 ))}
               </div>
-
               {course.classLink && (
                 <p>
                   Class Link:{" "}
-                  <a href={course.classLink} target="_blank" rel="noopener noreferrer">
-                    {course.classLink}
-                  </a>
+                  <a href={course.classLink} target="_blank" rel="noopener noreferrer">{course.classLink}</a>
                 </p>
               )}
-
               <div className="mt-2.5">
                 <button
                   className="px-4 py-1.5 bg-blue-500 text-white rounded-md mr-2.5 cursor-pointer"
@@ -309,7 +241,6 @@ export default function TutorHome() {
                 >
                   Edit
                 </button>
-
                 <button
                   className="px-4 py-1.5 bg-red-500 text-white rounded-md cursor-pointer"
                   onClick={() => handleDelete(course._id)}
@@ -337,33 +268,23 @@ export default function TutorHome() {
           </button>
 
           <Link href="/home/tutor/verify">
-            <button className="px-5 py-2 bg-gray-600 text-white rounded-md cursor-pointer mt-2.5">
-              Verify account
-            </button>
+            <button className="px-5 py-2 bg-gray-600 text-white rounded-md cursor-pointer mt-2.5">Verify account</button>
           </Link>
 
           <Link href="/home/tutor/request">
-            <button className="px-5 py-2 bg-[#2a0edd] text-white rounded-md cursor-pointer mt-2.5">
-              Booking request
-            </button>
+            <button className="px-5 py-2 bg-[#2a0edd] text-white rounded-md cursor-pointer mt-2.5">Booking request</button>
           </Link>
 
           <Link href="/home/tutor/status">
-            <button className="px-5 py-2 bg-[#6e5be7] text-white rounded-md cursor-pointer mt-2.5">
-              verify status
-            </button>
+            <button className="px-5 py-2 bg-[#6e5be7] text-white rounded-md cursor-pointer mt-2.5">verify status</button>
           </Link>
 
           <Link href="/home/tutor/wallet">
-            <button className="px-5 py-2 bg-[#e28223] text-white rounded-md cursor-pointer mt-2.5">
-              My Wallet
-            </button>
+            <button className="px-5 py-2 bg-[#e28223] text-white rounded-md cursor-pointer mt-2.5">My Wallet</button>
           </Link>
 
           <Link href="/home/tutor/myschedule">
-            <button className="px-5 py-2 bg-[#ffd7b0] text-black rounded-md cursor-pointer mt-2.5">
-              My Schedule
-            </button>
+            <button className="px-5 py-2 bg-[#ffd7b0] text-black rounded-md cursor-pointer mt-2.5">My Schedule</button>
           </Link>
         </div>
       </div>
@@ -371,10 +292,7 @@ export default function TutorHome() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
           <div className="bg-white p-10 rounded-xl w-[700px]">
-            <h2 className="mb-5">
-              {editingId ? "Edit Course" : "Create Course"}
-            </h2>
-
+            <h2 className="mb-5">{editingId ? "Edit Course" : "Create Course"}</h2>
             <div className="grid grid-cols-2 gap-[15px]">
               <input
                 type="text"
@@ -383,7 +301,6 @@ export default function TutorHome() {
                 onChange={(e) => setCourseName(e.target.value)}
                 className="w-full p-2.5 rounded-md border border-gray-300"
               />
-
               <input
                 type="number"
                 placeholder="ราคา"
@@ -392,14 +309,12 @@ export default function TutorHome() {
                 className="w-full p-2.5 rounded-md border border-gray-300"
                 required
               />
-
               <textarea
                 placeholder="Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full p-2.5 rounded-md border border-gray-300 col-span-2 h-[80px]"
               />
-
               <div className="relative">
                 <div
                   onClick={() => setShowTagList(!showTagList)}
@@ -408,19 +323,15 @@ export default function TutorHome() {
                   <span>{tags.length > 0 ? tags.join(", ") : "เลือกวิชา"}</span>
                   <span>▼</span>
                 </div>
-
                 {showTagList && (
                   <div className="absolute top-[45px] left-0 w-full border border-gray-300 rounded-md bg-white max-h-[200px] overflow-y-auto z-10">
                     {subjectTags.map((tag) => {
                       const selected = tags.includes(tag);
-
                       return (
                         <div
                           key={tag}
                           onClick={() => toggleTag(tag)}
-                          className={`p-2.5 cursor-pointer flex justify-between ${
-                            selected ? "bg-blue-100" : "bg-white"
-                          }`}
+                          className={`p-2.5 cursor-pointer flex justify-between ${selected ? "bg-blue-100" : "bg-white"}`}
                         >
                           <span>{tag}</span>
                           {selected && <span>✓</span>}
@@ -430,7 +341,6 @@ export default function TutorHome() {
                   </div>
                 )}
               </div>
-
               <input
                 type="text"
                 placeholder="Google Meet / Zoom"
@@ -438,14 +348,12 @@ export default function TutorHome() {
                 onChange={(e) => setLink(e.target.value)}
                 className="w-full p-2.5 rounded-md border border-gray-300"
               />
-
               <input
                 type="datetime-local"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 className="w-full p-2.5 rounded-md border border-gray-300"
               />
-
               <input
                 type="datetime-local"
                 value={endTime}
@@ -453,25 +361,25 @@ export default function TutorHome() {
                 className="w-full p-2.5 rounded-md border border-gray-300"
               />
             </div>
-
             <div className="flex justify-between mt-[25px]">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-5 py-2 bg-gray-400 text-white rounded-md cursor-pointer"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleCreate}
-                className="px-5 py-2 bg-blue-500 text-white rounded-md cursor-pointer"
-              >
-                {editingId ? "Update" : "Create"}
-              </button>
+              <button onClick={() => setShowModal(false)} className="px-5 py-2 bg-gray-400 text-white rounded-md cursor-pointer">Cancel</button>
+              <button onClick={handleCreate} className="px-5 py-2 bg-blue-500 text-white rounded-md cursor-pointer">{editingId ? "Update" : "Create"}</button>
             </div>
           </div>
         </div>
       )}
+
+      <button
+        onClick={() => setShowSupport(true)}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-indigo-700 text-white shadow-xl flex items-center justify-center hover:bg-indigo-800 transition-all hover:scale-105"
+        title="ติดต่อ Support"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-7 h-7">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+      </button>
+
+      <SupportModal open={showSupport} onClose={() => setShowSupport(false)} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import SupportModal from "@/components/SupportModal";
 
 const SUBJECT_TAGS = [
   "คณิตศาสตร์", "ฟิสิกส์", "เคมี", "ชีววิทยา", "วิทยาศาสตร์ทั่วไป",
@@ -21,19 +22,16 @@ export default function StudentHome() {
   const [tagFilter, setTagFilter] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-
   const [showDetail, setShowDetail] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
-
   const [showBookingConfirm, setShowBookingConfirm] = useState(false);
   const [selectedBookingCourse, setSelectedBookingCourse] = useState<any>(null);
-
   const [showTutorProfile, setShowTutorProfile] = useState(false);
   const [tutorProfile, setTutorProfile] = useState<any>(null);
   const [tutorProfileLoading, setTutorProfileLoading] = useState(false);
-
   const [tutorRatings, setTutorRatings] = useState<Record<string, number>>({});
+  const [showSupport, setShowSupport] = useState(false);
 
   const router = useRouter();
 
@@ -82,12 +80,10 @@ export default function StudentHome() {
       const title = course.title?.toLowerCase() || "";
       const tutor = (course.tutor?.name + " " + course.tutor?.surname)?.toLowerCase() || "";
       const tags = course.tags?.join(" ").toLowerCase() || "";
-
       const matchSearch = title.includes(lower) || tutor.includes(lower) || tags.includes(lower);
       const matchTag = tagFilter ? course.tags?.includes(tagFilter) : true;
       const matchMinPrice = minPrice ? course.price >= Number(minPrice) : true;
       const matchMaxPrice = maxPrice ? course.price <= Number(maxPrice) : true;
-
       return matchSearch && matchTag && matchMinPrice && matchMaxPrice;
     });
     setFilteredCourses(filtered);
@@ -106,16 +102,13 @@ export default function StudentHome() {
   async function openTutorProfile(tutorId: string) {
     setTutorProfileLoading(true);
     setShowTutorProfile(true);
-
     const res = await fetch(`/api/tutor/profile/${tutorId}`);
     const data = await res.json();
-
     if (res.ok) {
       setTutorProfile(data);
     } else {
       setTutorProfile(null);
     }
-
     setTutorProfileLoading(false);
   }
 
@@ -124,9 +117,7 @@ export default function StudentHome() {
       alert("กรุณา login");
       return;
     }
-
     setBookingLoading(courseId);
-
     try {
       const res = await fetch("/api/booking", {
         method: "POST",
@@ -136,22 +127,18 @@ export default function StudentHome() {
           courseId: courseId,
         }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         alert(data.message || "จองไม่สำเร็จ");
         setBookingLoading(null);
         return;
       }
-
       alert("ส่งคำขอจองไปยังติวเตอร์แล้ว");
       setShowBookingConfirm(false);
     } catch (error) {
       console.error(error);
       alert("เกิดข้อผิดพลาด");
     }
-
     setBookingLoading(null);
   }
 
@@ -275,7 +262,6 @@ export default function StudentHome() {
             <p className="mt-2">{selectedBookingCourse.title}</p>
             <p>{new Date(selectedBookingCourse.startTime).toLocaleString()} - {new Date(selectedBookingCourse.endTime).toLocaleString()}</p>
             <p className="mt-2">ราคา {selectedBookingCourse.price?.toLocaleString()} บาท</p>
-
             <div className="mt-5 flex justify-end gap-2">
               <button onClick={() => setShowBookingConfirm(false)} className="px-3 py-2 rounded-md border border-gray-300 bg-white">ยกเลิก</button>
               <button onClick={() => handleBooking(selectedBookingCourse._id)} className="px-3 py-2 rounded-md border-none bg-indigo-700 text-white">ยืนยันจอง</button>
@@ -306,7 +292,6 @@ export default function StudentHome() {
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
           <div className="bg-white p-6 rounded-xl w-[500px] max-w-[90%]">
             <p className="font-bold text-lg mb-4">โปรไฟล์ติวเตอร์</p>
-
             {tutorProfileLoading ? (
               <p>กำลังโหลด...</p>
             ) : !tutorProfile ? (
@@ -331,7 +316,6 @@ export default function StudentHome() {
                 <p>{tutorProfile.tutorExp ? `${tutorProfile.tutorExp} ปี` : "-"}</p>
               </>
             )}
-
             <button
               onClick={() => { setShowTutorProfile(false); setTutorProfile(null); }}
               className="mt-5 px-4 py-2 bg-orange-500 text-white border-none rounded-md"
@@ -346,7 +330,6 @@ export default function StudentHome() {
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
           <div className="bg-white p-6 rounded-xl w-[500px] max-w-[90%]">
             <h3 className="mb-4 text-lg font-semibold">Filter</h3>
-
             <select
               value={tagFilter}
               onChange={(e) => setTagFilter(e.target.value)}
@@ -357,12 +340,10 @@ export default function StudentHome() {
                 <option key={tag} value={tag}>{tag}</option>
               ))}
             </select>
-
             <div className="flex gap-2 mb-5">
               <input type="number" placeholder="Min price" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} className="flex-1 p-2 rounded-md border border-gray-300" />
               <input type="number" placeholder="Max price" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="flex-1 p-2 rounded-md border border-gray-300" />
             </div>
-
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowFilter(false)} className="px-3 py-2 rounded-md border border-gray-300 bg-white">Cancel</button>
               <button onClick={() => setShowFilter(false)} className="px-3 py-2 rounded-md border-none bg-orange-500 text-white">Apply</button>
@@ -370,6 +351,18 @@ export default function StudentHome() {
           </div>
         </div>
       )}
+
+      <button
+        onClick={() => setShowSupport(true)}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-indigo-700 text-white shadow-xl flex items-center justify-center hover:bg-indigo-800 transition-all hover:scale-105"
+        title="ติดต่อ Support"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-7 h-7">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+      </button>
+
+      <SupportModal open={showSupport} onClose={() => setShowSupport(false)} />
     </div>
   );
 }

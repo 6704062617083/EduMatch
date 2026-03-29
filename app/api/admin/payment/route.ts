@@ -4,6 +4,8 @@ import Payment from "@/models/Payment";
 import TutorWallet from "@/models/TutorWallet";
 import VerificationDocument from "@/models/VerificationDocument";
 import { NextResponse } from "next/server";
+import "@/models/User";
+import "@/models/Course";
 
 export async function GET() {
   await connectDB();
