@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 
 interface Booking {
   _id: string;
@@ -14,7 +16,7 @@ interface Booking {
   paymentStatus: string;
   createdAt: string;
   classLink?: string;
-  tutorId?: string; 
+  tutorId?: string;
 }
 
 const MONTH_TH = [
@@ -24,11 +26,11 @@ const MONTH_TH = [
 const DAY_TH = ["อา","จ","อ","พ","พฤ","ศ","ส"];
 
 const statusLabel: Record<string, { text: string; cls: string }> = {
-  pending:         { text: "รอการยืนยัน",  cls: "bg-amber-100 text-amber-700" },
-  waiting_payment: { text: "รอชำระเงิน",   cls: "bg-blue-100 text-blue-700" },
-  confirmed:       { text: "ยืนยันแล้ว",   cls: "bg-green-100 text-green-700" },
-  cancelled:       { text: "ยกเลิก",       cls: "bg-red-100 text-red-700" },
-  completed:       { text: "จบคอร์สแล้ว",  cls: "bg-purple-100 text-purple-700" },
+  pending:         { text: "รอการยืนยัน",   cls: "bg-yellow-50 text-yellow-600 border-yellow-100" },
+  waiting_payment: { text: "รอชำระเงิน",    cls: "bg-blue-50 text-blue-600 border-blue-100" },
+  confirmed:       { text: "ยืนยันแล้ว",    cls: "bg-green-50 text-green-600 border-green-100" },
+  cancelled:       { text: "ยกเลิก",        cls: "bg-red-50 text-red-600 border-red-100" },
+  completed:       { text: "จบคอร์สแล้ว",   cls: "bg-orange-50 text-orange-500 border-orange-100" },
 };
 
 function formatDate(iso: string | null) {
@@ -93,17 +95,17 @@ function RatingPopup({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col items-center gap-4">
-        <div className="w-14 h-14 bg-purple-50 rounded-full flex items-center justify-center text-3xl">
+      <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-sm p-8 flex flex-col items-center gap-5 border border-orange-100">
+        <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl">
           🎓
         </div>
 
         <div className="text-center">
-          <h2 className="text-lg font-bold text-gray-900">จบคอร์สแล้ว!</h2>
-          <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+          <h2 className="text-xl font-black text-[#1e3a5f]">จบคอร์สแล้ว!</h2>
+          <p className="text-sm text-gray-400 font-medium mt-1 leading-relaxed">
             ให้คะแนนติวเตอร์สำหรับคอร์ส
             <br />
-            <span className="font-semibold text-gray-700">{booking.courseTitle}</span>
+            <span className="font-black text-[#1e3a5f]">{booking.courseTitle}</span>
           </p>
         </div>
 
@@ -122,7 +124,7 @@ function RatingPopup({
           ))}
         </div>
 
-        <p className="text-xs text-gray-400 h-4">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider h-4">
           {display === 0 && "แตะดาวเพื่อให้คะแนน"}
           {display === 1 && "ต้องปรับปรุง"}
           {display === 2 && "พอใช้"}
@@ -136,14 +138,14 @@ function RatingPopup({
           onChange={(e) => setComment(e.target.value)}
           placeholder="ความคิดเห็นเพิ่มเติม (ไม่บังคับ)"
           rows={2}
-          className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 text-gray-700 placeholder-gray-300"
+          className="w-full text-sm border border-orange-100 bg-orange-50/50 rounded-2xl px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-orange-300 text-[#1e3a5f] font-bold placeholder:text-gray-300 transition-all"
         />
 
-        <div className="flex gap-2 w-full mt-1">
+        <div className="flex gap-3 w-full">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex-1 py-3.5 rounded-2xl border border-orange-100 text-sm font-bold text-[#1e3a5f] hover:bg-orange-50 transition-all disabled:opacity-50 active:scale-95"
           >
             ยกเลิก
           </button>
@@ -151,10 +153,10 @@ function RatingPopup({
             onClick={() => selected > 0 && onConfirm(selected, comment)}
             disabled={selected === 0 || loading}
             className={[
-              "flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors",
+              "flex-1 py-3.5 rounded-2xl text-sm font-black transition-all active:scale-95",
               selected > 0 && !loading
-                ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed",
+                ? "bg-[#FC5404] hover:bg-orange-600 text-white shadow-lg shadow-orange-100"
+                : "bg-gray-100 text-gray-300 cursor-not-allowed",
             ].join(" ")}
           >
             {loading ? "กำลังบันทึก..." : "ยืนยันจบคอร์ส"}
@@ -202,15 +204,25 @@ function Calendar({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-5">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">‹</button>
-        <span className="text-sm font-semibold text-gray-800">{MONTH_TH[viewMonth]} {viewYear + 543}</span>
-        <button onClick={nextMonth} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">›</button>
+    <div className="bg-white rounded-[28px] border border-orange-100 p-6 mb-5 shadow-sm">
+      <div className="flex items-center justify-between mb-5">
+        <button
+          onClick={prevMonth}
+          className="w-9 h-9 rounded-2xl border border-orange-100 flex items-center justify-center text-[#1e3a5f] hover:bg-orange-50 transition-all font-black active:scale-95"
+        >
+          ‹
+        </button>
+        <span className="text-sm font-black text-[#1e3a5f]">{MONTH_TH[viewMonth]} {viewYear + 543}</span>
+        <button
+          onClick={nextMonth}
+          className="w-9 h-9 rounded-2xl border border-orange-100 flex items-center justify-center text-[#1e3a5f] hover:bg-orange-50 transition-all font-black active:scale-95"
+        >
+          ›
+        </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
         {DAY_TH.map((d) => (
-          <div key={d} className="text-xs text-gray-400 font-medium py-1">{d}</div>
+          <div key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-wider py-1">{d}</div>
         ))}
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} />;
@@ -223,15 +235,17 @@ function Calendar({
               key={day}
               onClick={() => onSelect(cellDate)}
               className={[
-                "relative flex flex-col items-center py-1.5 rounded-lg text-sm transition-colors",
-                isSelected ? "bg-indigo-600 text-white font-semibold"
-                  : isToday ? "text-indigo-600 font-bold hover:bg-gray-50"
-                  : "text-gray-700 hover:bg-gray-50",
+                "relative flex flex-col items-center py-2 rounded-xl text-sm transition-all active:scale-95",
+                isSelected
+                  ? "bg-[#FC5404] text-white font-black shadow-md shadow-orange-100"
+                  : isToday
+                  ? "text-[#FC5404] font-black hover:bg-orange-50"
+                  : "text-[#1e3a5f] font-bold hover:bg-orange-50",
               ].join(" ")}
             >
               {day}
               {hasBooking && (
-                <span className={["w-1 h-1 rounded-full mt-0.5", isSelected ? "bg-white" : "bg-amber-400"].join(" ")} />
+                <span className={["w-1 h-1 rounded-full mt-0.5", isSelected ? "bg-white" : "bg-orange-400"].join(" ")} />
               )}
             </button>
           );
@@ -256,22 +270,33 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
   const diffMs = start ? start.getTime() - now.getTime() : null;
   const diffHour = diffMs ? Math.floor(diffMs / (1000 * 60 * 60)) : null;
   const diffMin = diffMs ? Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)) : null;
-  const st = statusLabel[displayStatus] ?? { text: displayStatus, cls: "bg-gray-100 text-gray-600" };
+  const st = statusLabel[displayStatus] ?? { text: displayStatus, cls: "bg-gray-50 text-gray-400 border-gray-100" };
 
   return (
-    <div className={["bg-white border rounded-xl px-4 py-3 mb-2 transition-colors", finished ? "border-gray-100 opacity-70" : "border-gray-100 hover:border-gray-200"].join(" ")}>
+    <div className={[
+      "bg-white border rounded-[24px] px-5 py-4 mb-3 transition-all",
+      finished ? "border-orange-50 opacity-60" : "border-orange-100 hover:shadow-md hover:ring-1 hover:ring-orange-200",
+    ].join(" ")}>
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 text-sm truncate">{b.courseTitle || "คอร์ส"}</p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {b.startTime ? `${formatDate(b.startTime)} · ${formatTime(b.startTime)}–${formatTime(b.endTime)}` : "ยังไม่ระบุวันเวลา"}
+          <p className="font-black text-[#1e3a5f] text-[15px] truncate leading-tight">{b.courseTitle || "คอร์ส"}</p>
+          <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-wide">
+            {b.startTime
+              ? `${formatDate(b.startTime)} · ${formatTime(b.startTime)}–${formatTime(b.endTime)}`
+              : "ยังไม่ระบุวันเวลา"}
           </p>
-          <p className="text-xs font-semibold text-indigo-600 mt-0.5">฿{b.price?.toLocaleString() ?? "–"}</p>
+          <p className="text-sm font-black text-orange-500 mt-1">฿{b.price?.toLocaleString() ?? "–"}</p>
           {!finished && b.classLink && canJoin && (
-            <a href={b.classLink} target="_blank" className="text-xs text-blue-600 underline mt-0.5 inline-block">เข้าเรียนออนไลน์</a>
+            <a 
+              href={b.classLink}
+              target="_blank"
+              className="text-xs font-bold text-[#FC5404] underline mt-1 inline-block"
+            >
+              เข้าเรียนออนไลน์ →
+            </a>
           )}
           {!finished && b.classLink && !canJoin && diffMin !== null && diffMin > 0 && (
-            <span className="text-xs text-gray-400 mt-0.5 inline-block">
+            <span className="text-[11px] font-bold text-gray-400 mt-1 inline-block">
               เข้าเรียนได้ในอีก{" "}
               {diffHour && diffHour > 0 && `${diffHour} ชม. `}
               {diffMin} นาที
@@ -279,11 +304,13 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
           )}
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${st.cls}`}>{st.text}</span>
+          <span className={`text-[10px] font-extrabold px-3 py-1 rounded-xl border uppercase tracking-wider ${st.cls}`}>
+            {st.text}
+          </span>
           {!finished && (b.status === "confirmed" || b.paymentStatus === "paid") && onCompleteClick && (
             <button
               onClick={() => onCompleteClick(b)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 active:scale-95 transition-all"
+              className="text-xs font-black px-3 py-2 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-100 active:scale-95 transition-all"
             >
               จบคอร์ส
             </button>
@@ -291,7 +318,7 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
         </div>
       </div>
       {finished && (
-        <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+        <p className="text-[11px] font-bold text-gray-400 mt-3 flex items-center gap-1 border-t border-orange-50 pt-3">
           <span>✓</span> คอร์สนี้เสร็จสิ้นแล้ว · ไม่สามารถดำเนินการใดได้
         </p>
       )}
@@ -301,20 +328,22 @@ function BookingCard({ b, onCompleteClick }: { b: Booking; onCompleteClick?: (b:
 
 function EmptyState({ icon, text }: { icon: string; text: string }) {
   return (
-    <div className="text-center py-10 border border-dashed border-gray-200 rounded-xl text-gray-400">
-      <div className="text-2xl mb-1">{icon}</div>
-      <p className="text-sm">{text}</p>
+    <div className="text-center py-16 border-2 border-dashed border-orange-100 rounded-[28px] text-gray-300">
+      <div className="text-3xl mb-2">{icon}</div>
+      <p className="text-sm font-bold">{text}</p>
     </div>
   );
 }
 
 function Skeleton() {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-3 animate-pulse">
-      <div className="h-6 bg-gray-100 rounded w-1/3" />
-      <div className="h-64 bg-gray-100 rounded-xl" />
-      <div className="h-14 bg-gray-100 rounded-xl" />
-      <div className="h-14 bg-gray-100 rounded-xl" />
+    <div className="min-h-screen bg-orange-50 p-8 animate-pulse">
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="h-8 bg-orange-100 rounded-2xl w-1/3" />
+        <div className="h-72 bg-white rounded-[28px] border border-orange-100" />
+        <div className="h-16 bg-white rounded-[24px] border border-orange-100" />
+        <div className="h-16 bg-white rounded-[24px] border border-orange-100" />
+      </div>
     </div>
   );
 }
@@ -343,7 +372,7 @@ export default function StudentMySchedule() {
         const list: Booking[] = Array.isArray(data)
           ? data.map((b: any) => ({
               ...b,
-              status: b.bookingStatus, 
+              status: b.bookingStatus,
               courseTitle: b.courseTitle || "คอร์ส",
               startTime: b.startTime || null,
               endTime: b.endTime || null,
@@ -428,63 +457,89 @@ export default function StudentMySchedule() {
         />
       )}
 
-      <div className="min-h-screen bg-gray-100 p-10">
-        <h1 className="text-2xl font-bold mb-2">ตารางเรียนของฉัน</h1>
-        <button onClick={() => router.push("/home/student")} className="text-sm mb-6 hover:underline">
-          ← ย้อนกลับ
-        </button>
+      <div className="min-h-screen bg-orange-50 font-sans tracking-tight antialiased flex flex-col">
+        <div className="flex items-center px-10 py-5 bg-[#FC5404] text-white shadow-md">
+          <div className="flex items-center gap-4">
+            <Link href="/home/student">
+              <Image 
+                src="/Edu_icon.png" 
+                alt="Edumatch Logo" 
+                width={120} 
+                height={35} 
+                className="object-contain cursor-pointer" 
+              />
+            </Link>
+            <div className="h-6 w-[1px] bg-white/30"></div>
+            <span className="text-lg font-black tracking-tighter uppercase text-white">ตารางเรียนของฉัน</span>
+          </div>
+        </div>
 
-        <div className="max-w-2xl mx-auto px-4 mb-5 -mt-4">
-          <p className="text-sm text-gray-400 mb-5">ดูคอร์สที่จองไว้ทั้งหมด</p>
-
-          <Calendar
-            bookings={bookings}
-            selectedDate={selectedDate}
-            onSelect={(d) => setSelectedDate((prev) => (prev && isSameDay(prev, d) ? null : d))}
-          />
-
-          {selectedDate && (
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-              <span>วันที่ {formatDate(selectedDate.toISOString())}</span>
-              <button onClick={() => setSelectedDate(null)} className="text-indigo-600 underline">ล้าง</button>
-            </div>
-          )}
-
-          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-4">
-            {(["upcoming", "completed"] as const).map((t) => {
-              const count = filterByDate(t === "upcoming" ? upcoming : completed).length;
-              const label = t === "upcoming" ? "กำลังมาถึง" : "เรียนจบแล้ว";
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={[
-                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm font-medium transition-colors",
-                    tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
-                  ].join(" ")}
-                >
-                  {label}
-                  <span className={["text-xs px-1.5 py-0.5 rounded-full font-semibold", tab === t ? "bg-indigo-100 text-indigo-600" : "bg-gray-200 text-gray-500"].join(" ")}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+        <div className="w-full pb-12">
+          <div className="px-10 mt-8 mb-6">
+            <button
+              onClick={() => router.push("/home/student")}
+              className="bg-white hover:bg-orange-50 text-[#FC5404] px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border border-orange-100 shadow-sm active:scale-95 flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+              ย้อนกลับ
+            </button>
           </div>
 
-          {activeList.length === 0 ? (
-            tab === "upcoming"
-              ? <EmptyState icon="" text="ไม่มีคอร์สที่กำลังมาถึง" />
-              : <EmptyState icon="" text="ยังไม่มีคอร์สที่เรียนจบ" />
-          ) : (
-            activeList.map((b) => (
-              <BookingCard
-                key={b._id}
-                b={b}
-                onCompleteClick={tab === "upcoming" ? setPopupBooking : undefined}
-              />
-            ))
-          )}
+          <div className="max-w-2xl mx-auto px-6">
+            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">ดูคอร์สที่จองไว้ทั้งหมด</p>
+
+            <Calendar 
+              bookings={bookings} 
+              selectedDate={selectedDate} 
+              onSelect={(d) => setSelectedDate((prev) => (prev && isSameDay(prev, d) ? null : d))} 
+            />
+
+            {selectedDate && (
+              <div className="flex items-center gap-2 text-sm mb-4">
+                <span className="font-bold text-[#1e3a5f]">วันที่ {formatDate(selectedDate.toISOString())}</span>
+                <button onClick={() => setSelectedDate(null)} className="text-[#FC5404] font-black hover:underline">ล้าง</button>
+              </div>
+            )}
+
+            <div className="flex gap-2 p-1.5 bg-white rounded-2xl border border-orange-100 shadow-sm mb-6">
+              {(["upcoming", "completed"] as const).map((t) => {
+                const count = filterByDate(t === "upcoming" ? upcoming : completed).length;
+                const label = t === "upcoming" ? "กำลังมาถึง" : "เรียนจบแล้ว";
+                return (
+                  <button 
+                    key={t} 
+                    onClick={() => setTab(t)} 
+                    className={[
+                      "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all active:scale-95", 
+                      tab === t ? "bg-[#FC5404] text-white shadow-md shadow-orange-100" : "text-gray-400 hover:text-[#1e3a5f]"
+                    ].join(" ")}
+                  >
+                    {label}
+                    <span className={[
+                      "text-[10px] px-1.5 py-0.5 rounded-lg font-black", 
+                      tab === t ? "bg-white/20 text-white" : "bg-orange-50 text-orange-400"
+                    ].join(" ")}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {activeList.length === 0 ? (
+              tab === "upcoming" ? <EmptyState icon="" text="ไม่มีคอร์สที่กำลังมาถึง" /> : <EmptyState icon="" text="ยังไม่มีคอร์สที่เรียนจบ" />
+            ) : (
+              activeList.map((b) => (
+                <BookingCard 
+                  key={b._id} 
+                  b={b} 
+                  onCompleteClick={tab === "upcoming" ? setPopupBooking : undefined} 
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </>

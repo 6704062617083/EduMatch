@@ -107,47 +107,63 @@ export default function SupportModal({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-end p-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-[420px] max-h-[640px] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end justify-end p-6">
+      <div className="bg-white rounded-[28px] shadow-2xl w-[420px] max-h-[640px] flex flex-col overflow-hidden border border-orange-100">
 
-        <div className="bg-indigo-700 text-white px-5 py-4 flex justify-between items-center shrink-0">
+        <div className="bg-[#FC5404] text-white px-6 py-4 flex justify-between items-center shrink-0">
           <div>
-            <p className="font-semibold text-base">ติดต่อ Support</p>
-            <p className="text-xs opacity-70 mt-0.5">ทีมงานจะตอบกลับโดยเร็วที่สุด</p>
+            <p className="font-black text-base tracking-tight">ติดต่อ Support</p>
+            <p className="text-[11px] text-white/70 font-medium mt-0.5">ทีมงานจะตอบกลับโดยเร็วที่สุด</p>
           </div>
-          <button onClick={handleClose} className="opacity-70 hover:opacity-100 text-lg leading-none">✕</button>
+          <button
+            onClick={handleClose}
+            className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center text-white font-black text-sm transition-all active:scale-95"
+          >
+            ✕
+          </button>
         </div>
 
         {!selectedTicket && (
-          <div className="flex border-b border-gray-200 shrink-0">
+          <div className="flex border-b border-orange-100 shrink-0 bg-orange-50/50">
             <button
               onClick={() => setTab("send")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                tab === "send" ? "border-b-2 border-indigo-700 text-indigo-700" : "text-gray-500 hover:text-gray-700"
+              className={`flex-1 py-3 text-sm font-black tracking-tight transition-colors ${
+                tab === "send"
+                  ? "border-b-2 border-[#FC5404] text-[#FC5404]"
+                  : "text-gray-400 hover:text-gray-600"
               }`}
             >
-              📝 ส่ง Report
+              ส่ง Report
             </button>
             <button
               onClick={() => { setTab("mytickets"); fetchTickets(); }}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                tab === "mytickets" ? "border-b-2 border-indigo-700 text-indigo-700" : "text-gray-500 hover:text-gray-700"
+              className={`flex-1 py-3 text-sm font-black tracking-tight transition-colors ${
+                tab === "mytickets"
+                  ? "border-b-2 border-[#FC5404] text-[#FC5404]"
+                  : "text-gray-400 hover:text-gray-600"
               }`}
             >
-              💬 กระทู้ของฉัน {tickets.length > 0 && `(${tickets.length})`}
+              กระทู้ของฉัน{tickets.length > 0 && (
+                <span className="ml-1.5 bg-[#FC5404] text-white text-[10px] px-1.5 py-0.5 rounded-full">{tickets.length}</span>
+              )}
             </button>
           </div>
         )}
 
         {selectedTicket && (
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 shrink-0 bg-gray-50">
-            <button onClick={() => setSelectedTicket(null)} className="text-gray-400 hover:text-gray-700 text-sm">
+          <div className="flex items-center gap-3 px-5 py-3 border-b border-orange-100 shrink-0 bg-orange-50/40">
+            <button
+              onClick={() => setSelectedTicket(null)}
+              className="text-[#FC5404] hover:text-orange-700 text-sm font-black transition-colors"
+            >
               ← กลับ
             </button>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">{selectedTicket.subject}</p>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                selectedTicket.status === "open" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+              <p className="font-black text-[#1e3a5f] text-sm truncate leading-tight">{selectedTicket.subject}</p>
+              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
+                selectedTicket.status === "open"
+                  ? "bg-green-50 text-green-600 border-green-100"
+                  : "bg-gray-50 text-gray-400 border-gray-100"
               }`}>
                 {selectedTicket.status === "open" ? "เปิดอยู่" : "ปิดแล้ว"}
               </span>
@@ -159,32 +175,32 @@ export default function SupportModal({ open, onClose }: Props) {
           {!selectedTicket && tab === "send" && (
             <div className="p-5 flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  หัวข้อปัญหา <span className="text-red-500">*</span>
-                </label>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1.5">
+                  หัวข้อปัญหา <span className="text-red-400">*</span>
+                </p>
                 <input
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="เช่น ไม่สามารถจองคอร์สได้"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50/50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  รายละเอียด <span className="text-red-500">*</span>
-                </label>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1.5">
+                  รายละเอียด <span className="text-red-400">*</span>
+                </p>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   rows={6}
                   placeholder="อธิบายปัญหาที่พบโดยละเอียด..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50/50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all"
                 />
               </div>
               <button
                 onClick={handleSend}
                 disabled={sending}
-                className="w-full py-2.5 bg-indigo-700 text-white rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50 transition-colors"
+                className="w-full py-3.5 bg-[#FC5404] hover:bg-orange-600 text-white rounded-2xl text-sm font-black shadow-lg shadow-orange-100 disabled:opacity-50 transition-all active:scale-95"
               >
                 {sending ? "กำลังส่ง..." : "ส่ง Report"}
               </button>
@@ -194,40 +210,50 @@ export default function SupportModal({ open, onClose }: Props) {
           {!selectedTicket && tab === "mytickets" && (
             <div className="p-4">
               {loading ? (
-                <p className="text-center text-gray-400 py-10 text-sm">กำลังโหลด...</p>
+                <div className="flex flex-col items-center py-10 text-orange-300">
+                  <div className="w-8 h-8 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mb-3"></div>
+                  <p className="font-bold animate-pulse text-sm">กำลังโหลด...</p>
+                </div>
               ) : tickets.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-gray-400 text-sm">ยังไม่มีกระทู้</p>
-                  <button onClick={() => setTab("send")} className="mt-3 text-indigo-600 text-sm hover:underline">
+                <div className="text-center py-10 border-2 border-orange-100 border-dashed rounded-[24px]">
+                  <p className="text-gray-300 font-bold text-sm mb-2">ยังไม่มีกระทู้</p>
+                  <button
+                    onClick={() => setTab("send")}
+                    className="text-[#FC5404] text-sm font-black hover:underline"
+                  >
                     ส่ง Report แรกของคุณ →
                   </button>
                 </div>
               ) : (
-                tickets.map((ticket) => {
-                  const lastMsg = ticket.messages[ticket.messages.length - 1];
-                  return (
-                    <div
-                      key={ticket._id}
-                      onClick={() => setSelectedTicket(ticket)}
-                      className="border border-gray-200 rounded-xl p-3.5 mb-3 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-all"
-                    >
-                      <div className="flex justify-between items-start gap-2">
-                        <p className="font-semibold text-sm text-gray-800 flex-1 leading-snug">{ticket.subject}</p>
-                        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${
-                          ticket.status === "open" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-                        }`}>
-                          {ticket.status === "open" ? "เปิด" : "ปิด"}
-                        </span>
+                <div className="space-y-3">
+                  {tickets.map((ticket) => {
+                    const lastMsg = ticket.messages[ticket.messages.length - 1];
+                    return (
+                      <div
+                        key={ticket._id}
+                        onClick={() => setSelectedTicket(ticket)}
+                        className="bg-white border border-orange-100 rounded-[20px] p-4 cursor-pointer hover:shadow-md hover:ring-1 hover:ring-orange-200 transition-all"
+                      >
+                        <div className="flex justify-between items-start gap-2 mb-1.5">
+                          <p className="font-black text-sm text-[#1e3a5f] flex-1 leading-snug">{ticket.subject}</p>
+                          <span className={`shrink-0 text-[10px] font-extrabold px-2 py-0.5 rounded-lg uppercase tracking-wider border ${
+                            ticket.status === "open"
+                              ? "bg-green-50 text-green-600 border-green-100"
+                              : "bg-gray-50 text-gray-400 border-gray-100"
+                          }`}>
+                            {ticket.status === "open" ? "เปิด" : "ปิด"}
+                          </span>
+                        </div>
+                        {lastMsg && (
+                          <p className="text-xs text-gray-400 font-medium truncate">{lastMsg.text}</p>
+                        )}
+                        <p className="text-[10px] text-gray-300 font-bold mt-1.5 uppercase tracking-wider">
+                          {ticket.messages.length} ข้อความ · {new Date(ticket.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
                       </div>
-                      {lastMsg && (
-                        <p className="text-xs text-gray-400 mt-1.5 truncate">{lastMsg.text}</p>
-                      )}
-                      <p className="text-xs text-gray-300 mt-1">
-                        {ticket.messages.length} ข้อความ · {new Date(ticket.createdAt).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
@@ -238,12 +264,16 @@ export default function SupportModal({ open, onClose }: Props) {
                 const isAdmin = msg.senderRole === "admin";
                 return (
                   <div key={i} className={`flex ${isAdmin ? "justify-start" : "justify-end"}`}>
-                    <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                      isAdmin ? "bg-gray-100 text-gray-800 rounded-tl-sm" : "bg-indigo-700 text-white rounded-tr-sm"
+                    <div className={`max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                      isAdmin
+                        ? "bg-orange-50 border border-orange-100 text-[#1e3a5f] rounded-tl-sm"
+                        : "bg-[#FC5404] text-white rounded-tr-sm shadow-md shadow-orange-100"
                     }`}>
-                      {isAdmin && <p className="text-xs font-bold text-indigo-600 mb-1">Admin</p>}
-                      <p>{msg.text}</p>
-                      <p className={`text-xs mt-1.5 ${isAdmin ? "text-gray-400" : "text-indigo-200"}`}>
+                      {isAdmin && (
+                        <p className="text-[10px] font-black text-orange-500 uppercase tracking-wider mb-1">Admin</p>
+                      )}
+                      <p className="font-medium">{msg.text}</p>
+                      <p className={`text-[10px] mt-1.5 font-bold ${isAdmin ? "text-gray-400" : "text-orange-200"}`}>
                         {new Date(msg.createdAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
@@ -256,9 +286,9 @@ export default function SupportModal({ open, onClose }: Props) {
         </div>
 
         {selectedTicket && (
-          <div className="border-t border-gray-200 p-3 shrink-0">
+          <div className="border-t border-orange-100 p-3 shrink-0 bg-orange-50/30">
             {selectedTicket.status === "closed" ? (
-              <p className="text-center text-xs text-gray-400 py-1">กระทู้นี้ถูกปิดแล้ว</p>
+              <p className="text-center text-[11px] font-bold text-gray-400 py-1 uppercase tracking-wider">กระทู้นี้ถูกปิดแล้ว</p>
             ) : (
               <div className="flex gap-2">
                 <input
@@ -266,11 +296,11 @@ export default function SupportModal({ open, onClose }: Props) {
                   onChange={(e) => setReplyText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
                   placeholder="พิมพ์ข้อความ..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="flex-1 px-4 py-2.5 rounded-2xl border border-orange-100 bg-white text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all"
                 />
                 <button
                   onClick={handleReply}
-                  className="px-4 py-2 bg-indigo-700 text-white rounded-lg text-sm hover:bg-indigo-800 transition-colors"
+                  className="px-4 py-2.5 bg-[#FC5404] hover:bg-orange-600 text-white rounded-2xl text-sm font-black shadow-md shadow-orange-100 transition-all active:scale-95"
                 >
                   ส่ง
                 </button>

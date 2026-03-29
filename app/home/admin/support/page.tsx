@@ -54,7 +54,7 @@ export default function AdminSupportPage() {
     <div className="min-h-screen bg-orange-50 font-sans tracking-tight antialiased">
       <div className="flex items-center justify-between border-b border-[#ddd] bg-[#FC5404] px-10 py-5 text-[22px] font-extrabold tracking-tight">
         <button
-          onClick={() => router.push("home/admin")}
+          onClick={() => router.push("/home/admin")}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <Image
@@ -70,7 +70,7 @@ export default function AdminSupportPage() {
       <div className="px-6 py-6">
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/home/admin")}
             className="flex items-center gap-1.5 text-sm font-medium text-orange-500 border border-orange-200 bg-white hover:bg-orange-50 px-3 py-1.5 rounded-xl transition-all shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
