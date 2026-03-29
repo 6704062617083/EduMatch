@@ -6,10 +6,12 @@ import { cookies } from "next/headers";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     await connectDB();
+
+    const { params } = context; // 👈 ย้ายมาดึงตรงนี้
 
     const cookieStore = await cookies();
     const userId = cookieStore.get("userId")?.value;
