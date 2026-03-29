@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Payment from "@/models/Payment";
 import { cookies } from "next/headers";
+import mongoose from "mongoose";
+import "@/models/Booking";
+import "@/models/Course";
 
 export async function GET() {
   try {
     await connectDB();
 
-    const cookieStore = await cookies();
+    const cookieStore = await cookies(); 
     const userId = cookieStore.get("userId")?.value;
 
     if (!userId) {
@@ -15,7 +18,7 @@ export async function GET() {
     }
 
     const payments = await Payment.find({
-      tutorId: userId,
+      tutorId: new mongoose.Types.ObjectId(userId), 
       paymentStatus: "transferred_to_tutor"
     })
       .populate({
@@ -43,7 +46,9 @@ export async function GET() {
       totalIncome,
       payments: formatted
     });
+
   } catch (err: any) {
+    console.error("INCOME API ERROR:", err); 
     return NextResponse.json(
       { message: err.message },
       { status: 500 }

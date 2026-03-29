@@ -39,6 +39,7 @@ interface PaymentRequest {
   paymentStatus: "pending" | "waiting_payment" | "slip_uploaded" | "paid" | "reject" | "transferred_to_tutor";
   price: number;
   slipUrl?: string;
+  slipUploadedAt?: string;
   studentId?: { name: string; surname: string };
   tutorId?: { name: string; surname: string };
   courseId?: { title: string };
@@ -64,6 +65,18 @@ const PAY_STATUS: Record<string, { label: string; color: string }> = {
   reject: { label: "สลิปไม่ผ่าน", color: "bg-red-50 text-red-600 border-red-100" },
   transferred_to_tutor: { label: "โอนให้ติวเตอร์", color: "bg-green-50 text-green-600 border-green-100" },
 };
+
+function formatDateTime(iso?: string) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleString("th-TH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function AdminHome() {
   const [user, setUser] = useState<any>(null);
@@ -286,6 +299,7 @@ export default function AdminHome() {
               {[...pendingPayments, ...paidPayments].map((item) => {
                 const st = PAY_STATUS[item.paymentStatus];
                 const isOpen = expandedPay === item._id;
+                const uploadedAt = formatDateTime(item.slipUploadedAt);
 
                 return (
                   <div key={item._id} className={`bg-white border rounded-[28px] overflow-hidden transition-all duration-300 ${isOpen ? "shadow-xl ring-1 ring-blue-100" : "shadow-sm border-orange-100"}`}>
@@ -316,7 +330,14 @@ export default function AdminHome() {
 
                           {item.slipUrl && (
                             <div className="space-y-2">
-                              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">สลิปการโอน:</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">สลิปการโอน:</p>
+                                {uploadedAt && (
+                                  <span className="text-[11px] font-bold text-orange-400 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-xl">
+                                    ส่งเมื่อ {uploadedAt}
+                                  </span>
+                                )}
+                              </div>
                               <div className="relative group overflow-hidden rounded-2xl border-4 border-gray-50">
                                 <img src={item.slipUrl} className="w-full h-auto" alt="Slip" />
                               </div>
@@ -334,7 +355,7 @@ export default function AdminHome() {
                                   });
                                   setPayData((prev) => prev.map((p) => p.bookingId === item.bookingId ? { ...p, paymentStatus: "paid" } : p));
                                 }}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition-all"
+                                className="flex-1 bg-[#FC5404] hover:bg-orange-600 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-orange-100 active:scale-95 transition-all"
                               >
                                 ยืนยันเงินเข้า
                               </button>
@@ -375,7 +396,7 @@ export default function AdminHome() {
                                 }}
                                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-100 active:scale-95 transition-all"
                               >
-                                โอนเงินสำเร็จแล้ว
+                                โอนเงินให้ติวเตอร์สำเร็จแล้ว
                               </button>
                             </div>
                           )}

@@ -126,63 +126,65 @@ export default function TutorHome() {
     window.location.href = "/";
   }
 
-  function renderStars(rating: number) {
-    return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={i < Math.round(rating) ? "text-[#f5a623] text-sm" : "text-gray-300 text-sm"}>★</span>
-    ));
-  }
-
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div
-        style={{
-          padding: "20px 40px",
-          fontSize: "22px",
-          fontWeight: "bold",
-          borderBottom: "1px solid #ddd",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Link href="/home/tutor">
-          <Image
-            src="/Edu_icon.png"
-            alt="Edumatch Logo"
-            width={140}
-            height={40}
-            style={{ cursor: "pointer", objectFit: "contain" }}
-          />
-        </Link>
+    <div className="min-h-screen bg-orange-50 font-sans tracking-tight antialiased flex flex-col">
+      <div className="flex justify-between items-center px-10 py-5 bg-[#FC5404] text-white shadow-md">
+        <div className="flex items-center gap-4">
+          <Link href="/home/tutor">
+            <Image src="/Edu_icon.png" alt="Edumatch Logo" width={120} height={35} className="object-contain cursor-pointer" />
+          </Link>
+          <div className="h-6 w-[1px] bg-white/30 ml-2"></div>
+          <span className="text-lg font-black tracking-tighter uppercase">คอร์สของฉัน</span>
+        </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end">
-            <span className="text-base font-normal">
-              {user?.name} {user?.surname}
-            </span>
-            {avgRating !== null && (
-              <div className="flex items-center gap-1 mt-[2px]">
-                {renderStars(avgRating)}
-                <span className="text-xs text-gray-600">
+        <div className="flex items-center gap-4">
+          <Link href="/home/tutor/request">
+            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
+              Booking Request
+            </button>
+          </Link>
+          <Link href="/home/tutor/myschedule">
+            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
+              ตารางสอน
+            </button>
+          </Link>
+          <Link href="/home/tutor/wallet">
+            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
+              กระเป๋าเงิน
+            </button>
+          </Link>
+
+          <div className="flex items-center gap-3 group cursor-pointer relative" onClick={() => setShowMenu(!showMenu)}>
+            <div className="text-right hidden sm:block">
+              <p className="text-[13px] font-bold leading-none">{user?.name} {user?.surname}</p>
+              {avgRating !== null && (
+                <p className="text-[11px] text-white/80 font-medium flex items-center gap-1 justify-end">
+                  <span className="text-yellow-300">★</span>
                   {avgRating.toFixed(1)} ({totalReviews} รีวิว)
-                </span>
-              </div>
-            )}
-          </div>
+                </p>
+              )}
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white transition-transform group-hover:scale-105 uppercase">
+              {user?.name?.[0]}
+            </div>
 
-          <div className="relative flex flex-col items-center">
-            <div
-              onClick={() => setShowMenu(!showMenu)}
-              className="w-10 h-10 rounded-full border-2 border-black cursor-pointer"
-            ></div>
-            <div className="text-xs mt-1">{user?.role}</div>
             {showMenu && (
-              <div className="absolute top-[60px] right-0 bg-white border border-gray-300 rounded-lg p-2.5 shadow-md">
+              <div className="absolute top-14 right-0 bg-white border border-orange-100 rounded-2xl shadow-xl p-2 w-40 z-50">
+                <Link href="/home/tutor/verify">
+                  <button className="w-full text-left bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors mb-1">
+                    Verify Account
+                  </button>
+                </Link>
+                <Link href="/home/tutor/status">
+                  <button className="w-full text-left bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors mb-1">
+                    Verify Status
+                  </button>
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 text-white px-2.5 py-1.5 rounded-md text-xs cursor-pointer"
+                  className="w-full text-left bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors"
                 >
-                  Logout
+                  ออกจากระบบ
                 </button>
               </div>
             )}
@@ -190,43 +192,102 @@ export default function TutorHome() {
         </div>
       </div>
 
-      <div className="flex flex-1">
-        <div className="flex-1 p-10">
-          <h2>My Courses</h2>
+      <div className="p-8 max-w-[1400px] mx-auto w-full">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-black text-[#1e3a5f] flex items-center gap-3">
+            คอร์สที่เปิดสอน
+            <span className="bg-orange-500 text-white text-sm px-2.5 py-0.5 rounded-full">{courses.length}</span>
+          </h2>
+          <button
+            onClick={() => {
+              if (verifyStatus !== "approved") {
+                alert("กรุณายืนยันตัวตนก่อนสร้าง Course");
+                return;
+              }
+              setEditingId(null);
+              setCourseName("");
+              setDescription("");
+              setStartTime("");
+              setEndTime("");
+              setLink("");
+              setPrice("");
+              setTags([]);
+              setShowModal(true);
+            }}
+            className="px-6 py-2.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white text-sm font-black shadow-lg shadow-orange-100 transition-all active:scale-95 flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+            </svg>
+            สร้างคอร์ส
+          </button>
+        </div>
 
-          {courses.length === 0 && <p>No courses yet</p>}
+        {courses.length === 0 && (
+          <div className="bg-white rounded-[32px] p-16 text-center border-2 border-orange-100 border-dashed text-gray-300 font-bold">
+            ยังไม่มีคอร์สเรียน กด &quot;สร้างคอร์ส&quot; เพื่อเริ่มต้น
+          </div>
+        )}
 
+        <div className="space-y-4">
           {courses.map((course) => (
             <div
               key={course._id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "20px",
-                borderRadius: "10px",
-                marginBottom: "15px",
-                backgroundColor: "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-              }}
+              className="bg-white border border-orange-100 rounded-[28px] p-6 shadow-sm hover:shadow-xl hover:ring-1 hover:ring-orange-200 transition-all duration-300"
             >
-              <h3 className="text-2xl font-bold mb-[6px] text-gray-900">{course.title}</h3>
-              {course.description && <p>{course.description}</p>}
-              <p>Start: {course.startTime ? new Date(course.startTime).toLocaleString() : "-"}</p>
-              <p>End: {course.endTime ? new Date(course.endTime).toLocaleString() : "-"}</p>
-              <p className="font-bold">ราคา: {course.price?.toLocaleString()} บาท</p>
-              <div className="mb-2.5">
-                {course.tags?.map((tag: string) => (
-                  <span key={tag} className="bg-blue-100 px-2.5 py-1 rounded-full text-xs mr-[5px]">{tag}</span>
-                ))}
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-xl font-black text-[#1e3a5f] mb-1 leading-tight">{course.title}</h3>
+
+                  {course.description && (
+                    <p className="text-sm text-gray-500 font-medium mb-3 leading-relaxed">{course.description}</p>
+                  )}
+
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {course.tags?.map((tag: string) => (
+                      <span key={tag} className="bg-orange-50 border border-orange-100 text-orange-600 px-3 py-1 rounded-xl text-[11px] font-extrabold uppercase tracking-wide">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-4 text-[12px] text-gray-400 font-medium">
+                    <span className="flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      เริ่ม: {course.startTime ? new Date(course.startTime).toLocaleString() : "-"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      สิ้นสุด: {course.endTime ? new Date(course.endTime).toLocaleString() : "-"}
+                    </span>
+                    {course.classLink && (
+                      <a
+                        href={course.classLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-orange-500 hover:text-orange-600 font-bold transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        ลิงก์ห้องเรียน
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="ml-6 text-right">
+                  <p className="text-2xl font-black text-orange-500">฿{course.price?.toLocaleString()}</p>
+                  <p className="text-[11px] text-gray-400 font-medium">ต่อคอร์ส</p>
+                </div>
               </div>
-              {course.classLink && (
-                <p>
-                  Class Link:{" "}
-                  <a href={course.classLink} target="_blank" rel="noopener noreferrer">{course.classLink}</a>
-                </p>
-              )}
-              <div className="mt-2.5">
+
+              <div className="flex gap-2 mt-2 pt-4 border-t border-orange-50">
                 <button
-                  className="px-4 py-1.5 bg-blue-500 text-white rounded-md mr-2.5 cursor-pointer"
                   onClick={() => {
                     setEditingId(course._id);
                     setCourseName(course.title);
@@ -238,132 +299,121 @@ export default function TutorHome() {
                     setTags(course.tags || []);
                     setShowModal(true);
                   }}
+                  className="px-4 py-2.5 rounded-2xl border border-orange-100 bg-orange-50 text-[#1e3a5f] text-sm font-bold hover:bg-orange-100 transition-all active:scale-95"
                 >
-                  Edit
+                  แก้ไข
                 </button>
                 <button
-                  className="px-4 py-1.5 bg-red-500 text-white rounded-md cursor-pointer"
                   onClick={() => handleDelete(course._id)}
+                  className="px-4 py-2.5 rounded-2xl border border-red-100 bg-red-50 text-red-500 text-sm font-bold hover:bg-red-100 transition-all active:scale-95"
                 >
-                  Delete
+                  ลบ
                 </button>
               </div>
             </div>
           ))}
         </div>
-
-        <div className="w-[250px] pt-10 pr-[60px] pb-10 flex flex-col items-end">
-          <button
-            onClick={() => {
-              if (verifyStatus !== "approved") {
-                alert("กรุณายืนยันตัวตนก่อนสร้าง Course");
-                return;
-              }
-              setEditingId(null);
-              setShowModal(true);
-            }}
-            className="px-5 py-2 bg-blue-500 text-white rounded-md cursor-pointer mt-[30px]"
-          >
-            + Create course
-          </button>
-
-          <Link href="/home/tutor/verify">
-            <button className="px-5 py-2 bg-gray-600 text-white rounded-md cursor-pointer mt-2.5">Verify account</button>
-          </Link>
-
-          <Link href="/home/tutor/request">
-            <button className="px-5 py-2 bg-[#2a0edd] text-white rounded-md cursor-pointer mt-2.5">Booking request</button>
-          </Link>
-
-          <Link href="/home/tutor/status">
-            <button className="px-5 py-2 bg-[#6e5be7] text-white rounded-md cursor-pointer mt-2.5">verify status</button>
-          </Link>
-
-          <Link href="/home/tutor/wallet">
-            <button className="px-5 py-2 bg-[#e28223] text-white rounded-md cursor-pointer mt-2.5">My Wallet</button>
-          </Link>
-
-          <Link href="/home/tutor/myschedule">
-            <button className="px-5 py-2 bg-[#ffd7b0] text-black rounded-md cursor-pointer mt-2.5">My Schedule</button>
-          </Link>
-        </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-          <div className="bg-white p-10 rounded-xl w-[700px]">
-            <h2 className="mb-5">{editingId ? "Edit Course" : "Create Course"}</h2>
-            <div className="grid grid-cols-2 gap-[15px]">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white rounded-[32px] p-8 w-[620px] max-w-[90%] shadow-2xl">
+            <h3 className="text-xl font-black text-[#1e3a5f] mb-1">
+              {editingId ? "แก้ไขคอร์ส" : "สร้างคอร์สใหม่"}
+            </h3>
+            <p className="text-sm text-gray-400 font-medium mb-6">กรอกข้อมูลคอร์สให้ครบถ้วน</p>
+
+            <div className="grid grid-cols-2 gap-3">
               <input
                 type="text"
-                placeholder="Course Name"
+                placeholder="ชื่อคอร์ส"
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
-                className="w-full p-2.5 rounded-md border border-gray-300"
+                className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300"
               />
               <input
                 type="number"
-                placeholder="ราคา"
+                placeholder="ราคา (บาท)"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full p-2.5 rounded-md border border-gray-300"
-                required
+                className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300"
               />
               <textarea
-                placeholder="Description"
+                placeholder="รายละเอียดคอร์ส"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2.5 rounded-md border border-gray-300 col-span-2 h-[80px]"
+                className="col-span-2 w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300 h-[80px] resize-none"
               />
+
               <div className="relative">
                 <div
                   onClick={() => setShowTagList(!showTagList)}
-                  className="w-full p-2.5 rounded-md border border-gray-300 cursor-pointer flex justify-between items-center"
+                  className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] cursor-pointer flex justify-between items-center"
                 >
-                  <span>{tags.length > 0 ? tags.join(", ") : "เลือกวิชา"}</span>
-                  <span>▼</span>
+                  <span className={tags.length > 0 ? "text-[#1e3a5f]" : "text-gray-300"}>
+                    {tags.length > 0 ? tags.join(", ") : "เลือกวิชา"}
+                  </span>
+                  <span className="text-gray-400 text-xs">▼</span>
                 </div>
                 {showTagList && (
-                  <div className="absolute top-[45px] left-0 w-full border border-gray-300 rounded-md bg-white max-h-[200px] overflow-y-auto z-10">
+                  <div className="absolute top-[52px] left-0 w-full border border-orange-100 rounded-2xl bg-white shadow-xl max-h-[200px] overflow-y-auto z-10">
                     {subjectTags.map((tag) => {
                       const selected = tags.includes(tag);
                       return (
                         <div
                           key={tag}
                           onClick={() => toggleTag(tag)}
-                          className={`p-2.5 cursor-pointer flex justify-between ${selected ? "bg-blue-100" : "bg-white"}`}
+                          className={`px-4 py-2.5 cursor-pointer flex justify-between items-center text-sm font-bold transition-colors ${selected ? "bg-orange-50 text-orange-600" : "text-[#1e3a5f] hover:bg-orange-50"}`}
                         >
                           <span>{tag}</span>
-                          {selected && <span>✓</span>}
+                          {selected && <span className="text-orange-500 text-xs">✓</span>}
                         </div>
                       );
                     })}
                   </div>
                 )}
               </div>
+
               <input
                 type="text"
-                placeholder="Google Meet / Zoom"
+                placeholder="Google Meet / Zoom Link"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
-                className="w-full p-2.5 rounded-md border border-gray-300"
+                className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300"
               />
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full p-2.5 rounded-md border border-gray-300"
-              />
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full p-2.5 rounded-md border border-gray-300"
-              />
+              <div className="flex flex-col gap-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter px-1">เวลาเริ่ม</p>
+                <input
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-orange-300"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter px-1">เวลาสิ้นสุด</p>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-orange-300"
+                />
+              </div>
             </div>
-            <div className="flex justify-between mt-[25px]">
-              <button onClick={() => setShowModal(false)} className="px-5 py-2 bg-gray-400 text-white rounded-md cursor-pointer">Cancel</button>
-              <button onClick={handleCreate} className="px-5 py-2 bg-blue-500 text-white rounded-md cursor-pointer">{editingId ? "Update" : "Create"}</button>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 py-3.5 rounded-2xl border border-orange-100 bg-white text-[#1e3a5f] font-bold transition-all active:scale-95"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleCreate}
+                className="flex-1 py-3.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95"
+              >
+                {editingId ? "บันทึกการแก้ไข" : "สร้างคอร์ส"}
+              </button>
             </div>
           </div>
         </div>
@@ -371,7 +421,7 @@ export default function TutorHome() {
 
       <button
         onClick={() => setShowSupport(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-indigo-700 text-white shadow-xl flex items-center justify-center hover:bg-indigo-800 transition-all hover:scale-105"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white shadow-xl shadow-orange-200 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         title="ติดต่อ Support"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-7 h-7">

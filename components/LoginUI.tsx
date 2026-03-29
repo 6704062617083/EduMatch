@@ -1,4 +1,3 @@
-// use tailwind css
 "use client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -16,7 +15,7 @@ export default function LoginUI({
   const router = useRouter();
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-20">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-orange-50 p-20">
       <Image 
           src="/Asset 5.png" 
           alt="Edumatch Logo" 
@@ -53,7 +52,7 @@ export default function LoginUI({
             type="submit"
             className="w-full p-2 bg-[#FF5A00] text-white rounded-full hover:bg-[#E65100] transition"
           >
-            เข้าสู่ระบบ
+            เข้าสู่ระบบ
           </button>
 
           <p className="mt-3 text-right text-xs">

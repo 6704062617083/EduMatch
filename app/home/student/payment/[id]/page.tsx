@@ -36,21 +36,10 @@ export default function Page() {
       <div className="w-full max-w-[380px] mb-4">
         <button
           onClick={() => router.push("/home/student/mybooking")}
-          className="flex items-center gap-2 text-[#f57c00] font-semibold text-sm hover:opacity-75 transition-opacity"
+          className="bg-white hover:bg-orange-50 text-[#FC5404] px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border border-orange-100 shadow-sm active:scale-95 flex items-center gap-2"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="M12 19l-7-7 7-7" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
           ย้อนกลับ
         </button>

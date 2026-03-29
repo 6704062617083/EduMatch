@@ -80,10 +80,8 @@ export default function TutorVerify() {
       .then(res => res.json())
       .then(doc => {
         if (!doc) return;
-
         setVerifyStatus(doc.status);
         setIsSubmitted(doc.status !== "rejected");
-
         setForm(prev => ({
           ...prev,
           idCardNumber:     doc.nationalId       || "",
@@ -136,36 +134,25 @@ export default function TutorVerify() {
       gpa:              "เกรดเฉลี่ย",
       tutorExp:         "ประสบการณ์สอน",
     };
-
     for (const [field] of Object.entries(requiredFields)) {
       if (!(form as any)[field]) {
         newErrors[field] = `โปรดกรอกฟิลด์นี้`;
       }
     }
-
     if (!idCard) newErrors.idCard = "กรุณาแนบไฟล์บัตรประชาชน";
     if (!certificate) newErrors.certificate = "กรุณาแนบไฟล์ประกาศนียบัตร";
     if (!transcript) newErrors.transcript = "กรุณาแนบไฟล์ Transcript";
     if (!resume) newErrors.resume = "กรุณาแนบไฟล์ Resume";
     if (!tutorPhoto) newErrors.tutorPhoto = "กรุณาแนบรูปติวเตอร์";
     if (!paymentQr) newErrors.paymentQr = "กรุณาแนบ QR โค้ดรับเงิน";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     if (!validate()) return;
-
-    if (form.idCardNumber.length !== 13) {
-      alert("กรุณากรอกเลขบัตร 13 หลัก");
-      return;
-    }
-    if (!isValidThaiID(form.idCardNumber)) {
-      alert("เลขบัตรประชาชนไม่ถูกต้อง");
-      return;
-    }
-
+    if (form.idCardNumber.length !== 13) { alert("กรุณากรอกเลขบัตร 13 หลัก"); return; }
+    if (!isValidThaiID(form.idCardNumber)) { alert("เลขบัตรประชาชนไม่ถูกต้อง"); return; }
     try {
       const formData = new FormData();
       formData.append("nationalId",       form.idCardNumber);
@@ -184,45 +171,38 @@ export default function TutorVerify() {
       formData.append("major",            form.major);
       formData.append("gpa",              form.gpa);
       formData.append("tutorExp",         form.tutorExp);
-
       if (idCard)      formData.append("idCard",      idCard);
       if (certificate) formData.append("certificate", certificate);
       if (transcript)  formData.append("transcript",  transcript);
       if (resume)      formData.append("resume",      resume);
       if (tutorPhoto)  formData.append("tutorPhoto",  tutorPhoto);
       if (paymentQr)   formData.append("paymentQr",   paymentQr);
-
-      const res = await fetch("/api/tutor/verify", {
-        method: "POST",
-        body: formData,
-      });
-
+      const res = await fetch("/api/tutor/verify", { method: "POST", body: formData });
       const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || "เกิดข้อผิดพลาด");
-        return;
-      }
-
+      if (!res.ok) { alert(data.error || "เกิดข้อผิดพลาด"); return; }
       alert("ส่งข้อมูลสำเร็จ รอการยืนยันจากแอดมิน");
       router.push("/home/tutor/status");
-
     } catch (err) {
       console.error(err);
       alert("เกิดข้อผิดพลาด");
     }
   };
 
+  const inputBase = (hasError: boolean, locked: boolean) =>
+    `w-full px-4 py-3 rounded-2xl border text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all
+    ${hasError ? "border-red-300 bg-red-50" : "border-orange-100 bg-orange-50"}
+    ${locked ? "cursor-not-allowed opacity-70" : ""}`;
+
   const label = (text: string) => (
-    <label className="text-sm text-gray-600 mb-1">{text}</label>
+    <label className="text-[10px] font-black text-gray-400 uppercase tracking-tighter px-1 mb-1">{text}</label>
   );
 
   const lockedInput = (labelText: string, field: string) => (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       {label(labelText)}
       <input
         placeholder={labelText}
-        className="border p-2 rounded bg-gray-100 cursor-not-allowed"
+        className={inputBase(false, true)}
         value={(form as any)[field]}
         readOnly
       />
@@ -230,26 +210,26 @@ export default function TutorVerify() {
   );
 
   const freeInput = (labelText: string, field: string, extra?: React.InputHTMLAttributes<HTMLInputElement>) => (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       {label(labelText)}
       <input
         placeholder={labelText}
-        className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors[field] ? "border-red-500" : ""}`}
+        className={inputBase(!!errors[field], isSubmitted)}
         value={(form as any)[field]}
         onChange={e => !isSubmitted && handleChange(field, e.target.value)}
         readOnly={isSubmitted}
         {...extra}
       />
-      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+      {errors[field] && <span className="text-red-400 text-[11px] font-bold px-1">{errors[field]}</span>}
     </div>
   );
 
   const numericInput = (labelText: string, field: string, maxLen: number) => (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       {label(labelText)}
       <input
         placeholder={labelText}
-        className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors[field] ? "border-red-500" : ""}`}
+        className={inputBase(!!errors[field], isSubmitted)}
         value={(form as any)[field]}
         inputMode="decimal"
         maxLength={maxLen}
@@ -260,15 +240,15 @@ export default function TutorVerify() {
         }}
         readOnly={isSubmitted}
       />
-      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+      {errors[field] && <span className="text-red-400 text-[11px] font-bold px-1">{errors[field]}</span>}
     </div>
   );
 
   const selectInput = (labelText: string, field: string, options: string[]) => (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       {label(labelText)}
       <select
-        className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors[field] ? "border-red-500" : ""}`}
+        className={inputBase(!!errors[field], isSubmitted)}
         value={(form as any)[field]}
         onChange={e => !isSubmitted && handleChange(field, e.target.value)}
         disabled={isSubmitted}
@@ -278,19 +258,20 @@ export default function TutorVerify() {
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
-      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+      {errors[field] && <span className="text-red-400 text-[11px] font-bold px-1">{errors[field]}</span>}
     </div>
   );
 
   const fileRow = (labelText: string, file: File | null, setter: (f: File | null) => void, field: string) => (
-    <div>
-      <label className="block mb-1 text-sm text-gray-600">{labelText}</label>
-      <div className={`flex items-center border rounded p-2 ${errors[field] ? "border-red-500" : ""}`}>
-        <span className="flex-1 text-sm text-gray-600">
+    <div className="flex flex-col gap-1">
+      {label(labelText)}
+      <div className={`flex items-center px-4 py-3 rounded-2xl border text-sm font-bold transition-all
+        ${errors[field] ? "border-red-300 bg-red-50" : "border-orange-100 bg-orange-50"}`}>
+        <span className="flex-1 text-gray-400 font-medium truncate">
           {file ? file.name : "ยังไม่ได้เลือกไฟล์"}
         </span>
         {!isSubmitted && (
-          <label className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded cursor-pointer text-sm">
+          <label className="ml-3 px-4 py-1.5 rounded-xl bg-[#FC5404] hover:bg-orange-600 text-white text-[11px] font-black cursor-pointer transition-all active:scale-95 whitespace-nowrap">
             เลือกไฟล์
             <input
               type="file"
@@ -300,150 +281,149 @@ export default function TutorVerify() {
           </label>
         )}
       </div>
-      {errors[field] && <span className="text-red-500 text-xs mt-1">{errors[field]}</span>}
+      {errors[field] && <span className="text-red-400 text-[11px] font-bold px-1">{errors[field]}</span>}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
-      <div className="mb-6">
-        <Link href="/home/tutor">
-          <Image
-            src="/Edu_icon.png" 
-            alt="Edumatch Logo"
-            width={140}
-            height={40}
-            className="cursor-pointer object-contain"
-          />
-        </Link>
+    <div className="min-h-screen bg-orange-50 font-sans tracking-tight antialiased flex flex-col">
+      <div className="flex items-center px-10 py-5 bg-[#FC5404] text-white shadow-md">
+        <div className="flex items-center gap-4">
+          <Link href="/home/tutor">
+            <Image src="/Edu_icon.png" alt="Edumatch Logo" width={120} height={35} className="object-contain cursor-pointer" />
+          </Link>
+          <div className="h-6 w-[1px] bg-white/30 ml-2"></div>
+          <span className="text-lg font-black tracking-tighter uppercase">ยืนยันตัวตน</span>
+        </div>
       </div>
 
-      <div className="bg-white p-8 rounded-xl shadow-md w-full">
-
-        <div className="flex items-center mb-4">
-          <button onClick={() => router.push("/home/tutor")} className="text-black-500 hover:underline mr-4">
-            ← ย้อนกลับ
-          </button>
-        </div>
+      <div className="p-8 max-w-[1400px] mx-auto w-full">
+        <button
+          onClick={() => router.push("/home/tutor")}
+          className="mb-6 px-5 py-2.5 rounded-2xl bg-white border border-orange-100 text-[#FC5404] text-sm font-black shadow-sm hover:shadow-md hover:bg-orange-50 transition-all active:scale-95 flex items-center gap-2"
+        >
+          <span>‹</span> ย้อนกลับ
+        </button>
 
         {verifyStatus === "rejected" && (
-          <p className="text-red-500 mb-4 font-medium">
-            ❌ ไม่ผ่าน กรุณาแก้ไขข้อมูลแล้วส่งใหม่
-          </p>
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-[24px] px-6 py-4">
+            <p className="text-sm font-black text-red-600">ไม่ผ่านการยืนยัน — กรุณาแก้ไขข้อมูลแล้วส่งใหม่</p>
+          </div>
         )}
 
-        <h2 className="text-xl font-semibold mb-4">ข้อมูลส่วนบุคคล</h2>
+        <div className="bg-white border border-orange-100 rounded-[32px] p-8 shadow-sm mb-6">
+          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">ข้อมูลส่วนบุคคล</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="flex flex-col">
-            {label("รหัสบัตรประชาชน")}
-            <input
-              placeholder="รหัสบัตรประชาชน"
-              className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors.idCardNumber ? "border-red-500" : ""}`}
-              value={form.idCardNumber}
-              inputMode="numeric"
-              maxLength={13}
-              onChange={e => {
-                if (isSubmitted) return;
-                handleChange("idCardNumber", e.target.value.replace(/\D/g, ""));
-              }}
-              readOnly={isSubmitted}
-            />
-            {errors.idCardNumber && <span className="text-red-500 text-xs mt-1">{errors.idCardNumber}</span>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="flex flex-col gap-1">
+              {label("รหัสบัตรประชาชน")}
+              <input
+                placeholder="รหัสบัตรประชาชน 13 หลัก"
+                className={inputBase(!!errors.idCardNumber, isSubmitted)}
+                value={form.idCardNumber}
+                inputMode="numeric"
+                maxLength={13}
+                onChange={e => {
+                  if (isSubmitted) return;
+                  handleChange("idCardNumber", e.target.value.replace(/\D/g, ""));
+                }}
+                readOnly={isSubmitted}
+              />
+              {errors.idCardNumber && <span className="text-red-400 text-[11px] font-bold px-1">{errors.idCardNumber}</span>}
+            </div>
+            {lockedInput("อีเมล", "email")}
+            {lockedInput("ชื่อ", "name")}
+            {lockedInput("นามสกุล", "surname")}
+            {freeInput("ชื่อ (English)", "firstNameEN")}
+            {freeInput("นามสกุล (English)", "lastNameEN")}
+            {freeInput("ชื่อเล่น", "nickname")}
+            {lockedInput("เบอร์โทรศัพท์", "phone")}
           </div>
 
-          {lockedInput("อีเมล", "email")}
-          {lockedInput("ชื่อ", "name")}
-          {lockedInput("นามสกุล", "surname")}
-          {freeInput("ชื่อ (English)", "firstNameEN")}
-          {freeInput("นามสกุล (English)", "lastNameEN")}
-          {freeInput("ชื่อเล่น", "nickname")}
-          {lockedInput("เบอร์โทรศัพท์", "phone")}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {freeInput("เชื้อชาติ", "ethnicity")}
-          {freeInput("สัญชาติ", "nationality")}
-          {selectInput("ศาสนา", "religion", ["พุทธ", "คริสต์", "อิสลาม", "ฮินดู", "ซิกข์", "ไม่มีศาสนา", "อื่นๆ"])}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="flex flex-col">
-            {label("วันเกิด")}
-            <input
-              type="text"
-              placeholder="วันเกิด"
-              className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors.birthDate ? "border-red-500" : ""}`}
-              value={form.birthDate}
-              onChange={e => !isSubmitted && handleChange("birthDate", e.target.value)}
-              onFocus={e => { if (!isSubmitted) e.target.type = "date"; }}
-              onBlur={e => { if (!e.target.value) e.target.type = "text"; }}
-              readOnly={isSubmitted}
-            />
-            {errors.birthDate && <span className="text-red-500 text-xs mt-1">{errors.birthDate}</span>}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {freeInput("เชื้อชาติ", "ethnicity")}
+            {freeInput("สัญชาติ", "nationality")}
+            {selectInput("ศาสนา", "religion", ["พุทธ", "คริสต์", "อิสลาม", "ฮินดู", "ซิกข์", "ไม่มีศาสนา", "อื่นๆ"])}
           </div>
 
-          {freeInput("ความถนัดทางวิชาการ", "academicStrength")}
-          {freeInput("จังหวัดที่อาศัย", "province")}
-        </div>
-
-        <h2 className="text-xl font-semibold mb-4">ข้อมูลการศึกษา</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="flex flex-col">
-            {label("ระดับการศึกษา")}
-            <select
-              className={`border p-2 rounded ${isSubmitted ? "bg-gray-100 cursor-not-allowed" : ""} ${errors.educationLevel ? "border-red-500" : ""}`}
-              value={form.educationLevel}
-              onChange={e => !isSubmitted && handleChange("educationLevel", e.target.value)}
-              disabled={isSubmitted}
-            >
-              <option value="">เลือกระดับการศึกษา</option>
-              <option value="ปริญญาตรี">ปริญญาตรี</option>
-              <option value="ปริญญาโท">ปริญญาโท</option>
-              <option value="ปริญญาเอก">ปริญญาเอก</option>
-            </select>
-            {errors.educationLevel && <span className="text-red-500 text-xs mt-1">{errors.educationLevel}</span>}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-1">
+              {label("วันเกิด")}
+              <input
+                type="text"
+                placeholder="วันเกิด"
+                className={inputBase(!!errors.birthDate, isSubmitted)}
+                value={form.birthDate}
+                onChange={e => !isSubmitted && handleChange("birthDate", e.target.value)}
+                onFocus={e => { if (!isSubmitted) e.target.type = "date"; }}
+                onBlur={e => { if (!e.target.value) e.target.type = "text"; }}
+                readOnly={isSubmitted}
+              />
+              {errors.birthDate && <span className="text-red-400 text-[11px] font-bold px-1">{errors.birthDate}</span>}
+            </div>
+            {freeInput("ความถนัดทางวิชาการ", "academicStrength")}
+            {freeInput("จังหวัดที่อาศัย", "province")}
           </div>
-
-          {freeInput("ชื่อสถาบันการศึกษา", "university")}
-          {freeInput("คณะ", "faculty")}
-          {freeInput("สาขาวิชา", "major")}
-          {numericInput("เกรดเฉลี่ย (GPA)", "gpa", 4)}
-          {numericInput("ประสบการณ์สอน (ปี)", "tutorExp", 2)}
         </div>
 
-        <h2 className="text-xl font-semibold mb-4">แนบเอกสาร</h2>
+        <div className="bg-white border border-orange-100 rounded-[32px] p-8 shadow-sm mb-6">
+          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">ข้อมูลการศึกษา</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {fileRow("บัตรประชาชน", idCard, setIdCard, "idCard")}
-          {fileRow("ประกาศนียบัตร/ปริญญาบัตร", certificate, setCertificate, "certificate")}
-          {fileRow("Transcript", transcript, setTranscript, "transcript")}
-          {fileRow("Resume", resume, setResume, "resume")}
-          {fileRow("รูปติวเตอร์", tutorPhoto, setTutorPhoto, "tutorPhoto")}
-          {fileRow("QR โค้ดรับเงิน", paymentQr, setPaymentQr, "paymentQr")}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              {label("ระดับการศึกษา")}
+              <select
+                className={inputBase(!!errors.educationLevel, isSubmitted)}
+                value={form.educationLevel}
+                onChange={e => !isSubmitted && handleChange("educationLevel", e.target.value)}
+                disabled={isSubmitted}
+              >
+                <option value="">เลือกระดับการศึกษา</option>
+                <option value="ปริญญาตรี">ปริญญาตรี</option>
+                <option value="ปริญญาโท">ปริญญาโท</option>
+                <option value="ปริญญาเอก">ปริญญาเอก</option>
+              </select>
+              {errors.educationLevel && <span className="text-red-400 text-[11px] font-bold px-1">{errors.educationLevel}</span>}
+            </div>
+            {freeInput("ชื่อสถาบันการศึกษา", "university")}
+            {freeInput("คณะ", "faculty")}
+            {freeInput("สาขาวิชา", "major")}
+            {numericInput("เกรดเฉลี่ย (GPA)", "gpa", 4)}
+            {numericInput("ประสบการณ์สอน (ปี)", "tutorExp", 2)}
+          </div>
+        </div>
+
+        <div className="bg-white border border-orange-100 rounded-[32px] p-8 shadow-sm mb-6">
+          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">แนบเอกสาร</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {fileRow("บัตรประชาชน", idCard, setIdCard, "idCard")}
+            {fileRow("ประกาศนียบัตร/ปริญญาบัตร", certificate, setCertificate, "certificate")}
+            {fileRow("Transcript", transcript, setTranscript, "transcript")}
+            {fileRow("Resume", resume, setResume, "resume")}
+            {fileRow("รูปติวเตอร์", tutorPhoto, setTutorPhoto, "tutorPhoto")}
+            {fileRow("QR โค้ดรับเงิน", paymentQr, setPaymentQr, "paymentQr")}
+          </div>
         </div>
 
         {!isSubmitted && (
           <button
             onClick={handleSubmit}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
+            className="px-8 py-3.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95"
           >
             ส่งข้อมูล
           </button>
         )}
 
         {isSubmitted && verifyStatus !== "rejected" && (
-          <div className={`text-sm font-medium px-4 py-2 rounded w-fit ${
+          <div className={`px-6 py-4 rounded-[24px] border w-fit text-sm font-black ${
             verifyStatus === "approved"
-              ? "bg-green-100 text-green-700"
-              : "bg-yellow-100 text-yellow-700"
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "bg-yellow-50 border-yellow-200 text-yellow-700"
           }`}>
             {verifyStatus === "approved" && "✅ แอดมินอนุมัติแล้ว"}
             {verifyStatus === "pending" && "⏳ ส่งข้อมูลแล้ว รอการยืนยันจากแอดมิน"}
           </div>
         )}
-
       </div>
     </div>
   );
