@@ -92,16 +92,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div
-      style={{
-        padding: "100px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#f4f6f9",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="flex flex-col justify-center items-center min-h-screen bg-orange-50 p-20">
       <div
         style={{
           width: "420px",

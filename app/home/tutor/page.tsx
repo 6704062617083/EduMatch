@@ -128,28 +128,29 @@ export default function TutorHome() {
 
   return (
     <div className="min-h-screen bg-orange-50 font-sans tracking-tight antialiased flex flex-col">
-      <div className="flex justify-between items-center px-10 py-5 bg-[#FC5404] text-white shadow-md">
-        <div className="flex items-center gap-4">
+      {/* 1. แก้ไข Navbar: ปรับ Padding และย่อปุ่มในจอมือถือ */}
+      <div className="flex justify-between items-center px-4 md:px-10 py-4 md:py-5 bg-[#FC5404] text-white shadow-md">
+        <div className="flex items-center gap-2 md:gap-4">
           <Link href="/home/tutor">
-            <Image src="/Edu_icon.png" alt="Edumatch Logo" width={120} height={35} className="object-contain cursor-pointer" />
+            <Image src="/Edu_icon.png" alt="Edumatch Logo" width={100} height={30} className="object-contain cursor-pointer md:w-[120px] md:h-[35px]" />
           </Link>
-          <div className="h-6 w-[1px] bg-white/30 ml-2"></div>
-          <span className="text-lg font-black tracking-tighter uppercase">คอร์สของฉัน</span>
+          <div className="hidden md:block h-6 w-[1px] bg-white/30 ml-2"></div>
+          <span className="hidden md:inline text-lg font-black tracking-tighter uppercase">คอร์สของฉัน</span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <Link href="/home/tutor/request">
-            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
-              Booking Request
+            <button className="bg-white/10 hover:bg-white/20 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all border border-white/20">
+              Booking<span className="hidden md:inline"> Request</span>
             </button>
           </Link>
           <Link href="/home/tutor/myschedule">
-            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
-              ตารางสอน
+            <button className="bg-white/10 hover:bg-white/20 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all border border-white/20">
+              ตาราง<span className="hidden md:inline">สอน</span>
             </button>
           </Link>
           <Link href="/home/tutor/wallet">
-            <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
+            <button className="hidden sm:block bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border border-white/20">
               กระเป๋าเงิน
             </button>
           </Link>
@@ -164,12 +165,17 @@ export default function TutorHome() {
                 </p>
               )}
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white transition-transform group-hover:scale-105 uppercase">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center font-bold text-white transition-transform group-hover:scale-105 uppercase">
               {user?.name?.[0]}
             </div>
 
             {showMenu && (
               <div className="absolute top-14 right-0 bg-white border border-orange-100 rounded-2xl shadow-xl p-2 w-40 z-50">
+                <Link href="/home/tutor/wallet">
+                  <button className="sm:hidden w-full text-left bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors mb-1">
+                    กระเป๋าเงิน
+                  </button>
+                </Link>
                 <Link href="/home/tutor/verify">
                   <button className="w-full text-left bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors mb-1">
                     Verify Account
@@ -192,9 +198,10 @@ export default function TutorHome() {
         </div>
       </div>
 
-      <div className="p-8 max-w-[1400px] mx-auto w-full">
+      {/* 2. แก้ไข Padding หน้าหลัก: p-8 -> p-4 md:p-8 */}
+      <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-black text-[#1e3a5f] flex items-center gap-3">
+          <h2 className="text-xl md:text-2xl font-black text-[#1e3a5f] flex items-center gap-3">
             คอร์สที่เปิดสอน
             <span className="bg-orange-500 text-white text-sm px-2.5 py-0.5 rounded-full">{courses.length}</span>
           </h2>
@@ -214,17 +221,18 @@ export default function TutorHome() {
               setTags([]);
               setShowModal(true);
             }}
-            className="px-6 py-2.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white text-sm font-black shadow-lg shadow-orange-100 transition-all active:scale-95 flex items-center gap-2"
+            className="px-4 md:px-6 py-2.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white text-sm font-black shadow-lg shadow-orange-100 transition-all active:scale-95 flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            สร้างคอร์ส
+            <span className="hidden sm:inline">สร้างคอร์ส</span>
+            <span className="sm:hidden">สร้าง</span>
           </button>
         </div>
 
         {courses.length === 0 && (
-          <div className="bg-white rounded-[32px] p-16 text-center border-2 border-orange-100 border-dashed text-gray-300 font-bold">
+          <div className="bg-white rounded-[32px] p-10 md:p-16 text-center border-2 border-orange-100 border-dashed text-gray-300 font-bold">
             ยังไม่มีคอร์สเรียน กด &quot;สร้างคอร์ส&quot; เพื่อเริ่มต้น
           </div>
         )}
@@ -233,11 +241,12 @@ export default function TutorHome() {
           {courses.map((course) => (
             <div
               key={course._id}
-              className="bg-white border border-orange-100 rounded-[28px] p-6 shadow-sm hover:shadow-xl hover:ring-1 hover:ring-orange-200 transition-all duration-300"
+              className="bg-white border border-orange-100 rounded-[28px] p-5 md:p-6 shadow-sm hover:shadow-xl hover:ring-1 hover:ring-orange-200 transition-all duration-300"
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-xl font-black text-[#1e3a5f] mb-1 leading-tight">{course.title}</h3>
+              {/* 3. แก้ไขการจัดวางหัวข้อกับราคา: flex-col md:flex-row */}
+              <div className="flex flex-col md:flex-row justify-between items-start">
+                <div className="flex-1 w-full">
+                  <h3 className="text-lg md:text-xl font-black text-[#1e3a5f] mb-1 leading-tight">{course.title}</h3>
 
                   {course.description && (
                     <p className="text-sm text-gray-500 font-medium mb-3 leading-relaxed">{course.description}</p>
@@ -251,7 +260,7 @@ export default function TutorHome() {
                     ))}
                   </div>
 
-                  <div className="flex flex-wrap gap-4 text-[12px] text-gray-400 font-medium">
+                  <div className="flex flex-wrap gap-3 md:gap-4 text-[12px] text-gray-400 font-medium">
                     <span className="flex items-center gap-1">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -280,13 +289,14 @@ export default function TutorHome() {
                   </div>
                 </div>
 
-                <div className="ml-6 text-right">
+                <div className="mt-3 md:mt-0 ml-0 md:ml-6 text-left md:text-right">
                   <p className="text-2xl font-black text-orange-500">฿{course.price?.toLocaleString()}</p>
-                  <p className="text-[11px] text-gray-400 font-medium">ต่อคอร์ส</p>
+                  <p className="text-[11px] text-gray-400 font-medium hidden md:block">ต่อคอร์ส</p>
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-2 pt-4 border-t border-orange-50">
+              {/* 4. แก้ไขปุ่ม: เรียงซ้อนกันบนมือถือ และให้เต็มความกว้าง */}
+              <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-2 pt-4 border-t border-orange-50">
                 <button
                   onClick={() => {
                     setEditingId(course._id);
@@ -299,13 +309,13 @@ export default function TutorHome() {
                     setTags(course.tags || []);
                     setShowModal(true);
                   }}
-                  className="px-4 py-2.5 rounded-2xl border border-orange-100 bg-orange-50 text-[#1e3a5f] text-sm font-bold hover:bg-orange-100 transition-all active:scale-95"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-2xl border border-orange-100 bg-orange-50 text-[#1e3a5f] text-sm font-bold hover:bg-orange-100 transition-all active:scale-95 text-center"
                 >
                   แก้ไข
                 </button>
                 <button
                   onClick={() => handleDelete(course._id)}
-                  className="px-4 py-2.5 rounded-2xl border border-red-100 bg-red-50 text-red-500 text-sm font-bold hover:bg-red-100 transition-all active:scale-95"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-2xl border border-red-100 bg-red-50 text-red-500 text-sm font-bold hover:bg-red-100 transition-all active:scale-95 text-center"
                 >
                   ลบ
                 </button>
@@ -316,14 +326,16 @@ export default function TutorHome() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white rounded-[32px] p-8 w-[620px] max-w-[90%] shadow-2xl">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          {/* 5. เพิ่ม overflow-y-auto ให้ Modal */}
+          <div className="bg-white rounded-[32px] p-6 md:p-8 w-[620px] max-w-full shadow-2xl overflow-y-auto max-h-[90vh]">
             <h3 className="text-xl font-black text-[#1e3a5f] mb-1">
               {editingId ? "แก้ไขคอร์ส" : "สร้างคอร์สใหม่"}
             </h3>
             <p className="text-sm text-gray-400 font-medium mb-6">กรอกข้อมูลคอร์สให้ครบถ้วน</p>
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* 5. แก้ไข Grid ช่องกรอกข้อมูล: 1 คอลัมน์บนมือถือ, 2 คอลัมน์บนคอมพ์ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
                 placeholder="ชื่อคอร์ส"
@@ -342,7 +354,7 @@ export default function TutorHome() {
                 placeholder="รายละเอียดคอร์ส"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="col-span-2 w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300 h-[80px] resize-none"
+                className="col-span-1 sm:col-span-2 w-full px-4 py-3 rounded-2xl border border-orange-100 bg-orange-50 text-sm font-bold text-[#1e3a5f] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-300 h-[80px] resize-none"
               />
 
               <div className="relative">
@@ -401,16 +413,16 @@ export default function TutorHome() {
               </div>
             </div>
 
-            <div className="flex gap-3 mt-8">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-8">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 py-3.5 rounded-2xl border border-orange-100 bg-white text-[#1e3a5f] font-bold transition-all active:scale-95"
+                className="flex-1 py-3 md:py-3.5 rounded-2xl border border-orange-100 bg-white text-[#1e3a5f] font-bold transition-all active:scale-95 text-center"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleCreate}
-                className="flex-1 py-3.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95"
+                className="flex-1 py-3 md:py-3.5 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95 text-center"
               >
                 {editingId ? "บันทึกการแก้ไข" : "สร้างคอร์ส"}
               </button>
@@ -421,10 +433,10 @@ export default function TutorHome() {
 
       <button
         onClick={() => setShowSupport(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white shadow-xl shadow-orange-200 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[#FC5404] hover:bg-orange-600 text-white shadow-xl shadow-orange-200 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
         title="ติดต่อ Support"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-7 h-7">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
           <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
         </svg>
       </button>
